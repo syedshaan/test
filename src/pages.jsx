@@ -382,11 +382,12 @@ export function Home() {
       </section>
 
       <section className="border-y border-slate-200 bg-white/80">
-        <div className="mx-auto grid max-w-7xl gap-5 px-4 py-14 md:grid-cols-3 md:px-6">
+        <div className="mx-auto grid max-w-7xl gap-5 px-4 py-14 md:grid-cols-2 md:px-6 lg:grid-cols-4">
           {[
-            { t: "Know Your Law", d: "Understand legal topics in plain language.", to: "/know-your-law", icon: "01" },
-            { t: "AI Drafting Assistant", d: "Create a preliminary document draft with guided prompts.", to: "/drafter", icon: "02" },
-            { t: "Book a Consultation", d: "Tell us what you need and our team will reach out.", to: "/consultation", icon: "03" },
+            { t: "Startup Guide", d: "Explore a practical, source-linked legal journey for Indian startups.", to: "/startup-guide", icon: "01" },
+            { t: "Know Your Law", d: "Understand legal topics in plain language.", to: "/know-your-law", icon: "02" },
+            { t: "AI Drafting Assistant", d: "Create a preliminary document draft with guided prompts.", to: "/drafter", icon: "03" },
+            { t: "Book a Consultation", d: "Tell us what you need and our team will reach out.", to: "/consultation", icon: "04" },
           ].map((c) => (
             <Link key={c.t} to={c.to} className="surface-card rounded-2xl p-6">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-sm font-bold text-brand-700">{c.icon}</span>
@@ -1228,7 +1229,9 @@ export function Policies() {
       <p className="mt-2 text-slate-600">
         The content on Pleadlaw is for general information only and is not legal advice. Submitting
         a form does not create an advocate-client relationship. Such a relationship arises only
-        after a professional engagement is confirmed in writing.
+        after a professional engagement is confirmed in writing. The Startup Guide is not a
+        comprehensive statement of obligations; requirements depend on the business facts,
+        applicable State or local rules, and current law.
       </p>
 
       <h2 className="mt-8 text-xl font-semibold">AI-Generated Drafts</h2>
