@@ -283,19 +283,27 @@ export function Home() {
               Explore Indian legal updates and career opportunities, and create a preliminary document draft through guided, document-specific questions.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
-            <Link
-              to="/consultation"
-              className="rounded-xl bg-white px-5 py-3 font-semibold text-slate-900 shadow-lg shadow-black/15 transition hover:-translate-y-0.5 hover:bg-cyan-50"
-            >
-              Talk to our team
-            </Link>
-            <Link
-              to="/drafter"
-              className="rounded-xl border border-white/25 bg-white/[0.06] px-5 py-3 font-semibold text-white transition hover:bg-white/15"
-            >
-              Explore AI drafting
-            </Link>
-          </div>
+              <Link
+                to="/consultation"
+                className="rounded-xl bg-white px-5 py-3 font-semibold text-slate-900 shadow-lg shadow-black/15 transition hover:-translate-y-0.5 hover:bg-cyan-50"
+              >
+                Talk to our team
+              </Link>
+              <Link
+                to="/drafter"
+                className="rounded-xl border border-white/25 bg-white/[0.06] px-5 py-3 font-semibold text-white transition hover:bg-white/15"
+              >
+                Explore AI drafting
+              </Link>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-cyan-100">
+              <Link to="/jobs" className="transition hover:text-white">
+                Browse legal jobs <span aria-hidden="true">→</span>
+              </Link>
+              <Link to="/news" className="transition hover:text-white">
+                Read latest news <span aria-hidden="true">→</span>
+              </Link>
+            </div>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-indigo-100/70">
               <span>AI-assisted drafting</span>
               <span>·</span>
