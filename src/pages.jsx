@@ -404,7 +404,8 @@ export function Home() {
                   src={member.image}
                   alt={`${member.name}, ${member.role}`}
                   loading="lazy"
-                  className="h-full w-full object-cover object-top transition duration-300 group-hover:scale-[1.02]"
+                  style={{ objectPosition: member.imagePosition || "center top" }}
+                  className={`h-full w-full object-cover transition duration-300 ${member.imageScale || "group-hover:scale-[1.02]"}`}
                 />
               </div>
               <div className="p-5">
