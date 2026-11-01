@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { DOCUMENT_SCHEMAS, DOCUMENT_TYPES } from "./draft-schema.js";
+import { teamMembers } from "./Team.jsx";
 
 /* ---------- shared helpers ---------- */
 
@@ -382,18 +383,51 @@ export function Home() {
       </section>
 
       <section className="border-y border-slate-200 bg-white/80">
-        <div className="mx-auto grid max-w-7xl gap-5 px-4 py-14 md:grid-cols-2 md:px-6 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-7xl gap-5 px-4 py-14 md:grid-cols-3 md:px-6">
           {[
-            { t: "Startup Guide", d: "Explore a practical, source-linked legal journey for Indian startups.", to: "/startup-guide", icon: "01" },
-            { t: "Know Your Law", d: "Understand legal topics in plain language.", to: "/know-your-law", icon: "02" },
-            { t: "AI Drafting Assistant", d: "Create a preliminary document draft with guided prompts.", to: "/drafter", icon: "03" },
-            { t: "Book a Consultation", d: "Tell us what you need and our team will reach out.", to: "/consultation", icon: "04" },
+            { t: "Know Your Law", d: "Understand legal topics in plain language.", to: "/know-your-law", icon: "01" },
+            { t: "AI Drafting Assistant", d: "Create a preliminary document draft with guided prompts.", to: "/drafter", icon: "02" },
+            { t: "Book a Consultation", d: "Tell us what you need and our team will reach out.", to: "/consultation", icon: "03" },
           ].map((c) => (
             <Link key={c.t} to={c.to} className="surface-card rounded-2xl p-6">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-sm font-bold text-brand-700">{c.icon}</span>
               <h3 className="mt-5 font-bold text-slate-900">{c.t}</h3>
               <p className="mt-2 text-sm leading-relaxed text-slate-600">{c.d}</p>
               <span className="mt-5 inline-block text-sm font-semibold text-brand-700">Explore →</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-16">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-600">The people behind Pleadlaw</p>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Meet our team</h2>
+          </div>
+          <Link to="/team" className="shrink-0 text-sm font-semibold text-brand-700 hover:text-brand-500">
+            Full profiles →
+          </Link>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {teamMembers.map((member) => (
+            <Link
+              key={member.name}
+              to="/team"
+              className="surface-card group overflow-hidden rounded-2xl"
+            >
+              <img
+                src={member.image}
+                alt={`${member.name}, ${member.role}`}
+                loading="lazy"
+                className="aspect-[4/3] w-full bg-slate-100 object-cover object-top transition duration-300 group-hover:scale-[1.02]"
+              />
+              <div className="p-5">
+                <h3 className="font-bold text-slate-900">{member.name}</h3>
+                <p className="mt-1 text-sm font-medium text-violet-800">{member.role}</p>
+                <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-slate-600">{member.bio}</p>
+                <span className="mt-4 inline-block text-sm font-semibold text-brand-700">Read profile →</span>
+              </div>
             </Link>
           ))}
         </div>
