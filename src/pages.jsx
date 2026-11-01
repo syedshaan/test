@@ -274,13 +274,13 @@ export function Home() {
               Next-generation legal services
             </span>
             <h1 className="mt-6 max-w-2xl text-5xl font-extrabold leading-[1.05] tracking-tight md:text-7xl">
-              The law, made
+              Indian law, careers &amp;
               <span className="block bg-gradient-to-r from-cyan-200 via-violet-200 to-white bg-clip-text text-transparent">
-                easier to navigate.
+                startup guidance—made easier.
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-indigo-100/85">
-              Explore Indian legal updates and career opportunities, and create a preliminary document draft through guided, document-specific questions.
+              Explore Indian legal news, curated law jobs, and a practical Startup Guide—or create a preliminary document draft with guided questions.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link
@@ -477,19 +477,19 @@ function NewsCard({ item, requireImage = false }) {
           <span className="rounded-full bg-violet-50 px-2.5 py-1 font-semibold text-brand-700">
             {item.category || "Legal news"}
           </span>
-          <span>{formatDate(item.date)}</span>
+          <span>Published {formatDate(item.date)}</span>
         </div>
         <h3 className="line-clamp-3 font-bold leading-snug text-slate-900">{item.title}</h3>
         {item.summary && <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-600">{item.summary}</p>}
         <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-100 pt-4 text-xs">
-          <span className="truncate text-slate-500">{item.source}</span>
+          <span className="truncate text-slate-500">Source: {item.source || "Original publisher"}</span>
           <a
             href={item.url}
             target="_blank"
             rel="noopener noreferrer"
             className="shrink-0 font-semibold text-brand-700 hover:text-brand-500"
           >
-            Read story →
+            Original source →
           </a>
         </div>
       </div>
@@ -662,7 +662,7 @@ function JobCard({ job }) {
       )}
       <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3 text-xs">
         <div className="text-slate-500">
-          {job.posted && <p>Posted {formatDate(job.posted)}</p>}
+          {job.posted && <p>Posted on {formatDate(job.posted)}</p>}
           {job.lastDate && <p>Apply by {formatDate(job.lastDate)}</p>}
         </div>
         {job.url ? (
@@ -672,7 +672,7 @@ function JobCard({ job }) {
             rel="noopener noreferrer"
             className="font-semibold text-brand-700 hover:text-brand-500"
           >
-            {job.autoCollected ? "Read source article →" : "Official notice →"}
+            {job.autoCollected ? "Source article →" : "Official notice →"}
           </a>
         ) : (
           <span className="text-slate-400">Source link unavailable</span>
@@ -805,7 +805,6 @@ export function Consultation() {
   const [submitError, setSubmitError] = useState("");
   const [form, setForm] = useState({
     name: "",
-    age: "",
     region: "",
     mobile: "",
     email: "",
@@ -844,7 +843,6 @@ export function Consultation() {
       );
       setForm({
         name: "",
-        age: "",
         region: "",
         mobile: "",
         email: "",
@@ -898,19 +896,6 @@ export function Consultation() {
           />
         </label>
         <label className="block text-sm font-medium">
-          Age *
-          <input
-            required
-            type="number"
-            min="1"
-            max="120"
-            name="age"
-            value={form.age}
-            onChange={update}
-            className={field}
-          />
-        </label>
-        <label className="block text-sm font-medium">
           City / State *
           <input
             required
@@ -923,9 +908,9 @@ export function Consultation() {
           />
         </label>
         <label className="block text-sm font-medium">
-          Mobile Number *
+          Mobile Number{form.commPref === "WhatsApp" ? " *" : ""}
           <input
-            required
+            required={form.commPref === "WhatsApp"}
             type="tel"
             inputMode="tel"
             autoComplete="tel"
@@ -939,9 +924,9 @@ export function Consultation() {
           />
         </label>
         <label className="block text-sm font-medium">
-          Email Address *
+          Email Address{form.commPref === "Email" ? " *" : ""}
           <input
-            required
+            required={form.commPref === "Email"}
             type="email"
             maxLength={254}
             autoComplete="email"
@@ -979,6 +964,9 @@ export function Consultation() {
             <option>Email</option>
             <option>WhatsApp</option>
           </select>
+          <span className="mt-1 block text-xs font-normal text-slate-500">
+            Provide an email address for email replies or a mobile number for WhatsApp.
+          </span>
         </label>
 
         <div className="hidden" aria-hidden="true">
@@ -1008,6 +996,13 @@ export function Consultation() {
             does not create an advocate-client relationship.
           </span>
         </label>
+        <p className="-mt-3 text-xs leading-relaxed text-slate-500">
+          We use your details to respond to this request. See our{" "}
+          <Link to="/policies" className="font-semibold text-brand-700 underline hover:text-brand-500">
+            Privacy information
+          </Link>
+          . Please do not include passwords or highly sensitive documents.
+        </p>
 
         {submitError && (
           <p role="alert" className="text-sm text-red-600">
@@ -1282,7 +1277,7 @@ export function Policies() {
 
       <h2 className="mt-8 text-xl font-semibold">Privacy</h2>
       <p className="mt-2 text-slate-600">
-        We collect the details you submit (such as name, age, region, mobile number and query) only
+        We collect the details you submit (such as name, region, mobile number, email and query) only
         to respond to your request. Details entered in the AI Drafter are sent to Google Gemini to
         generate a draft and are not saved by this website. Avoid submitting unnecessary personal
         or confidential information. Contact us to request correction or deletion of consultation
