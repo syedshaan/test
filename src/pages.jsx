@@ -399,13 +399,14 @@ export function Home() {
               to="/team"
               className="surface-card group overflow-hidden rounded-2xl"
             >
-              <img
-                src={member.image}
-                alt={`${member.name}, ${member.role}`}
-                loading="lazy"
-                style={{ objectPosition: member.imagePosition || "center 35%" }}
-                className="aspect-[4/3] w-full bg-slate-100 object-cover transition duration-300 group-hover:scale-[1.02]"
-              />
+              <div className="aspect-[4/3] w-full overflow-hidden bg-slate-100">
+                <img
+                  src={member.image}
+                  alt={`${member.name}, ${member.role}`}
+                  loading="lazy"
+                  className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.02]"
+                />
+              </div>
               <div className="p-5">
                 <h3 className="font-bold text-slate-900">{member.name}</h3>
                 <p className="mt-1 text-sm font-medium text-violet-800">{member.role}</p>
