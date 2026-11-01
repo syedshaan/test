@@ -46,14 +46,6 @@ function Navbar() {
               </NavLink>
             </li>
           ))}
-          <li className="ml-2">
-            <Link
-              to="/drafter"
-              className="rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
-            >
-              Try AI Drafter
-            </Link>
-          </li>
         </ul>
         <button
           className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold shadow-sm md:hidden"
