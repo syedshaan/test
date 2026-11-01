@@ -9,10 +9,14 @@ import {
   Drafter,
   Policies,
 } from "./pages.jsx";
+import StartupGuide from "./StartupGuide.jsx";
+import Team from "./Team.jsx";
 
 const links = [
   { to: "/news", label: "News" },
   { to: "/jobs", label: "Jobs" },
+  { to: "/startup-guide", label: "Startup Guide" },
+  { to: "/team", label: "Our Team" },
   { to: "/know-your-law", label: "Know Your Law" },
   { to: "/drafter", label: "AI Drafter" },
   { to: "/consultation", label: "Book Consultation" },
@@ -90,6 +94,8 @@ function Footer() {
           </div>
           <div className="flex gap-4">
             <Link to="/news" className="hover:text-white">News</Link>
+            <Link to="/startup-guide" className="hover:text-white">Startup Guide</Link>
+            <Link to="/team" className="hover:text-white">Our Team</Link>
             <Link to="/drafter" className="hover:text-white">AI Drafter</Link>
             <Link to="/policies" className="hover:text-white">Policies</Link>
           </div>
@@ -114,6 +120,8 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/news" element={<News />} />
           <Route path="/jobs" element={<Jobs />} />
+          <Route path="/startup-guide" element={<StartupGuide />} />
+          <Route path="/team" element={<Team />} />
           <Route path="/know-your-law" element={<KnowYourLaw />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/drafter" element={<Drafter />} />
