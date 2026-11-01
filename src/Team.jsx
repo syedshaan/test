@@ -55,12 +55,12 @@ export default function Team() {
       <section aria-label="Pleadlaw team members" className="mt-8 grid gap-5 md:grid-cols-2">
         {teamMembers.map((member, index) => (
           <article key={member.name} className="surface-card rounded-2xl p-6 md:p-8">
-            <div className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-100">
+            <div className="aspect-[4/5] w-full overflow-hidden rounded-xl bg-slate-100">
               <img
                 src={member.image}
                 alt={`${member.name}, ${member.role}`}
                 loading="lazy"
-                className="h-full w-full object-contain"
+                className="h-full w-full object-cover object-top"
               />
             </div>
             <div className="mt-5 flex items-start gap-4">
