@@ -3,7 +3,6 @@ export const teamMembers = [
     name: "Amirah Rizvi",
     role: "Legal research, policy, and public-service careers",
     image: "/amirah-rizvi.jpg",
-    imagePosition: "center 68%",
     bio: "Amirah Rizvi is a legal professional with over four years of experience across key public institutions in India, including the Ministry of Labour and Employment, the Supreme Court of India, and the National Legal Services Authority (NALSA). Her work spans legal research, legislative and regulatory drafting, judicial policy, social security, and access to justice. She holds a B.A. LL.B. (Hons.) and an LL.M. from Aligarh Muslim University. She has contributed to research reports, memoranda, regulatory frameworks, and institutional initiatives, and served as Joint Editor of My Legal Friend, a Hindi legal magazine. Her knowledge-sharing includes workshops and mentoring for the Supreme Court Law Clerk-cum-Research Associate examination, judicial services examinations, and other law-related public-service examinations, as well as interview readiness, CV development, and career guidance.",
   },
   {
@@ -56,13 +55,14 @@ export default function Team() {
       <section aria-label="Pleadlaw team members" className="mt-8 grid gap-5 md:grid-cols-2">
         {teamMembers.map((member, index) => (
           <article key={member.name} className="surface-card rounded-2xl p-6 md:p-8">
-            <img
-              src={member.image}
-              alt={`${member.name}, ${member.role}`}
-              loading="lazy"
-              style={{ objectPosition: member.imagePosition || "center 35%" }}
-              className="aspect-[4/3] w-full rounded-xl bg-slate-100 object-cover"
-            />
+            <div className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-100">
+              <img
+                src={member.image}
+                alt={`${member.name}, ${member.role}`}
+                loading="lazy"
+                className="h-full w-full object-contain"
+              />
+            </div>
             <div className="mt-5 flex items-start gap-4">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-700">
