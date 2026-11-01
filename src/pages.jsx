@@ -296,14 +296,6 @@ export function Home() {
                 Explore AI drafting
               </Link>
             </div>
-            <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-cyan-100">
-              <Link to="/jobs" className="transition hover:text-white">
-                Browse legal jobs <span aria-hidden="true">→</span>
-              </Link>
-              <Link to="/news" className="transition hover:text-white">
-                Read latest news <span aria-hidden="true">→</span>
-              </Link>
-            </div>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-indigo-100/70">
               <span>AI-assisted drafting</span>
               <span>·</span>
