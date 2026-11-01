@@ -68,24 +68,25 @@ export default async function handler(req, res) {
   }
 
   const name = cleanText(data.name, 100);
-  const age = Number(data.age);
   const region = cleanText(data.region, 120);
   const mobile = cleanText(data.mobile, 20).replace(/[()\s-]/g, "");
   const email = cleanText(data.email, 254);
   const serviceType = cleanText(data.serviceType, 80);
   const query = cleanText(data.query, 5000);
   const commPref = cleanText(data.commPref, 20);
-  const phoneIsValid = /^(?:\+?91)?[6-9]\d{9}$/.test(mobile);
+  const phoneIsValid = !mobile || /^(?:\+?91)?[6-9]\d{9}$/.test(mobile);
+  const emailIsValid = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const hasPreferredContact =
+    (commPref === "Email" && Boolean(email)) ||
+    (commPref === "WhatsApp" && Boolean(mobile));
 
   if (
     data.consent !== true ||
     !name ||
-    !Number.isInteger(age) ||
-    age < 1 ||
-    age > 120 ||
     !region ||
     !phoneIsValid ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+    !emailIsValid ||
+    !hasPreferredContact ||
     !ALLOWED_SERVICES.has(serviceType) ||
     query.length < 10 ||
     !ALLOWED_CONTACT_METHODS.has(commPref)
@@ -107,10 +108,9 @@ export default async function handler(req, res) {
     "New consultation request from Pleadlaw",
     "",
     `Name: ${name}`,
-    `Age: ${age}`,
     `City / State: ${region}`,
-    `Mobile: ${mobile}`,
-    `Email: ${email}`,
+    `Mobile: ${mobile || "Not provided"}`,
+    `Email: ${email || "Not provided"}`,
     `Service: ${serviceType}`,
     `Preferred contact method: ${commPref}`,
     "",
@@ -129,7 +129,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         from: RESEND_FROM_EMAIL,
         to: [OWNER_EMAIL],
-        reply_to: email,
+        ...(email ? { reply_to: email } : {}),
         subject: `Pleadlaw consultation request - ${name}`,
         text: message,
       }),
