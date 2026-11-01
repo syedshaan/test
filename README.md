@@ -1,5 +1,84 @@
 # pleadlaw
 
+## Startup Guide and team
+
+The website's **Startup Guide** is available from the main navigation and at
+`/startup-guide`. It provides a plain-English overview of entity choices,
+founder and business documents, conditional compliance topics, reporting,
+intellectual property, funding, online business, dispute prevention, and
+expansion or closure. It links to official government resources and includes a
+questionnaire-driven checklist that can be printed or downloaded. Checklist
+completion marks are stored only in the visitor's browser.
+
+The guide is general information, not legal, tax, accounting, or investment
+advice. It does not determine which requirements apply to a particular
+business. Review the current law, applicable rules, commencement notifications,
+thresholds, exemptions, and State or local requirements before publishing
+substantive legal updates.
+
+The **Our Team** page is available at `/team`. Profiles are shown in this order:
+Amirah Rizvi, Advocate Akash Singh, Aman Rizvi, and Luv Tripathi. The page also
+links to the supplied Pleadlaw Facebook and Instagram profiles.
+
+To edit guide copy or official-resource links, update `src/StartupGuide.jsx`.
+To edit team bios or social links, update `src/Team.jsx`. Route and navigation
+changes belong in `src/App.jsx`.
+
+## Updating jobs and articles
+
+There is currently no public admin panel or CMS. Website content is maintained
+in the repository, and changes reach the site after they are committed to the
+production branch and Vercel finishes a deployment.
+For routine edits in the GitHub website, open the target file, choose the
+pencil/Edit control, make the content change, review the diff, and commit it to
+`main`. Then check Vercel's Deployments page for a **Ready** production
+deployment before considering the live update complete.
+
+### Update a job listing manually
+
+1. Open `public/jobs.json` on GitHub and choose **Edit**.
+2. Add or update an entry inside the existing `jobs` array. Use a unique `id`,
+   an accurate `title`, `organisation`, `type` or `sector`, a valid ISO `posted`
+   date, an HTTPS `url` to the announcement, and a concise `description`.
+   Include `location`, `lastDate`, and a positive integer `vacancyCount` only
+   when the source explicitly states them. An optional image must be an HTTPS
+   image URL.
+3. Keep manually managed listings without `autoCollected: true`; that flag is
+   reserved for the RSS importer. Listings should have a recent `posted` date,
+   an identifiable sector, and a working source link to display on the site.
+4. Save the JSON and commit the edit to `main`. Check that the Vercel deployment
+   for that commit is **Ready**, then refresh the Jobs page.
+
+The importer removes expired auto-collected listings and can deduplicate
+similar announcements. It does not verify that a vacancy is still open; check
+the employer's notice before publishing or applying.
+
+### Update a legal-news article manually
+
+1. Open `public/news.json` on GitHub and choose **Edit**.
+2. Add an item to the existing array with a unique `id`, `title`, brief
+   `summary`, `source`, HTTPS `url`, ISO `date`, and `category`. An optional
+   `image` should be an HTTPS image URL that the publisher permits other sites
+   to display.
+3. Save valid JSON and commit the edit to `main`. Check the Vercel deployment
+   and confirm the story appears on the News page. The homepage only displays
+   articles with a usable image.
+
+The scheduled feed workflow runs every six hours and also supports a manual
+run from GitHub **Actions → Update feeds → Run workflow**. It discovers items
+from the feeds in `scripts/feeds.config.json`, updates the feed-generated JSON
+files, and commits generated changes. Check the workflow log for rejected
+items or fetch errors. To add an automated source, add a working RSS feed to
+that configuration and preserve the existing JSON shape. The importer may
+remove old or over-limit auto-published stories, so do not treat feed-managed
+JSON as a permanent archive.
+
+For either workflow, use **Preview changes** before committing, avoid editing
+the JSON punctuation or enclosing array/object, and verify the resulting
+deployment. A CMS or protected editorial dashboard would be a separate future
+feature; do not put passwords, API keys, or other secrets in these public
+content files.
+
 ## Automatic job listings
 
 The scheduled feed workflow runs every six hours. Job announcements from
