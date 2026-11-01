@@ -274,13 +274,13 @@ export function Home() {
               Next-generation legal services
             </span>
             <h1 className="mt-6 max-w-2xl text-5xl font-extrabold leading-[1.05] tracking-tight md:text-7xl">
-              Indian law, careers &amp;
+              AI Drafting, Careers &amp;
               <span className="block bg-gradient-to-r from-cyan-200 via-violet-200 to-white bg-clip-text text-transparent">
-                startup guidance—made easier.
+                Startup Guidance Made Easier
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-indigo-100/85">
-              Explore Indian legal news, curated law jobs, and a practical Startup Guide—or create a preliminary document draft with guided questions.
+              Create a Preliminary Document Draft With Guided Questions, Explore Indian Legal News, Curated Legal Jobs or a Practical Startup Guide
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link
