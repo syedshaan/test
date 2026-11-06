@@ -107,62 +107,120 @@
     "image": "https://www.verdictum.in/h-upload/2026/06/23/1779789-delhi-hc-justice-madhu-jain.webp"
   },
   {
-    "id": "item-380621416",
-    "title": "Shardul Amarchand Mangaldas & Co advises Varroc Engineering Limited on strategic joint venture with Forsee Power SA",
-    "summary": "The partnership brings together Forsee’s battery technology and Varroc’s manufacturing, customer and management capabilities, supporting the localisation and expansion of EV battery solutions in India. The post Shardu...",
+    "id": "item-1570267688",
+    "title": "Role of navigation in policy-making sufficient to establish ‘related party’ status: Supreme Court upholds exclusion of debenture holder and trustee from CoC",
+    "summary": "Supreme Court held that a role of navigation in determining policy and channelising business interests is sufficient to establish related-party status under Section 5(24)(m)(i) of the IBC, upholding the exclusion of t...",
     "source": "SCC Online Blog",
-    "url": "https://www.scconline.com/blog/post/2026/11/05/shardul-amarchand-mangaldas-advises-varroc-engineering-forsee-power-joint-venture/",
-    "date": "2026-11-05",
+    "url": "https://www.scconline.com/blog/post/2026/11/06/supreme-court-related-party-status-debenture-holder-trustee-coc-ibc/",
+    "date": "2026-11-06",
     "category": "news"
   },
   {
-    "id": "item-1003481276",
-    "title": "Gujarat Uniform Civil Code, 2026: Gujarat introduces uniform framework for marriage, divorce, succession and live-in relationships",
-    "summary": "The Government of Gujarat has introduced the Gujarat Uniform Civil Code, 2026, establishing a uniform legal framework governing marriage, divorce, succession, inheritance, wills, probate, and live-in relationships for...",
+    "id": "item-552149284",
+    "title": "ePCT 4.18: Startups and small entities can now claim search-fee reduction more easily",
+    "summary": "Applicants filing PCT international patent applications through ePCT using India as the International Searching Authority (ISA/IN) can now avail enhanced search-fee reduction functionality and access detailed fee-calc...",
     "source": "SCC Online Blog",
-    "url": "https://www.scconline.com/blog/post/2026/11/05/gujarat-uniform-civil-code-2026-marriage-succession-live-in-relationships/",
-    "date": "2026-11-05",
+    "url": "https://www.scconline.com/blog/post/2026/11/06/epct-version-4-18-search-fee-reduction-isa-in/",
+    "date": "2026-11-06",
+    "category": "news",
+    "image": "https://blog-images.scconline.com/blobblogscconl28830c17bf/blog/wp-content/uploads/2026/11/17-30_ePCT-1.png"
+  },
+  {
+    "id": "item-255913947",
+    "title": "Delhi High Court judge recuses after lawyer \"cries\" for \"beloved justice system\"",
+    "summary": "The Delhi High Court recently took strong exception after a lawyer repeatedly remarked, “I cry my beloved justice system\" and walked out of the courtroom during the hearing of his case [Arjun Dev Bhatia v. State NCT o...",
+    "source": "Bar & Bench",
+    "url": "https://www.barandbench.com/news/delhi-high-court-judge-recuses-after-lawyer-cries-for-beloved-justice-system",
+    "date": "2026-11-06",
+    "category": "news",
+    "image": "https://cf-images.assettype.com/barandbench/2025-12-04/v6ae9zh2/WhatsApp-Image-2025-12-04-at-11.36.30-AM.jpeg"
+  },
+  {
+    "id": "item-454699542",
+    "title": "Why courts should be given the power to modify awards in domestic arbitration",
+    "summary": "Section 34 of the Arbitration and Conciliation Act, 1996, which provides for a recourse to parties where they are aggrieved by an arbitral award, needs legislative reform. By amending the Arbitration Act, courts ought...",
+    "source": "Bar & Bench",
+    "url": "https://www.barandbench.com/columns/should-courts-be-given-the-power-to-modify-awards-rendered-in-domestic-india-seated-arbitrations-when-the-fall-foul-of-public-policy-2",
+    "date": "2026-11-06",
+    "category": "news",
+    "image": "https://cf-images.assettype.com/barandbench/2026-10-06/svdnxwib/1000661333.jpg"
+  },
+  {
+    "id": "item-248654464",
+    "title": "Delhi High Court Directs 'Doosra' Makers To Add Disclaimer Stating Film Doesn't Have Sourav Ganguly's Consent To Use His Name",
+    "summary": "",
+    "source": "LiveLaw",
+    "url": "https://www.livelaw.in/high-court/delhi-high-court/delhi-high-court-directs-doosra-makers-to-add-disclaimer-stating-film-doesnt-have-sourav-gangulys-consent-to-use-his-name-557655",
+    "date": "2026-11-06",
+    "category": "news",
+    "image": "https://www.livelaw.in/h-upload/2026/10/22/707772-delhi-hc-doosra-movie.webp"
+  },
+  {
+    "id": "item-476776675",
+    "title": "National Book Trust Qualifies As 'State' Due To Deep And Pervasive Government Control : Supreme Court",
+    "summary": "",
+    "source": "LiveLaw",
+    "url": "https://www.livelaw.in/supreme-court/national-book-trust-qualifies-as-state-due-to-deep-and-pervasive-government-control-supreme-court-557681",
+    "date": "2026-11-06",
+    "category": "news",
+    "image": "https://www.livelaw.in/h-upload/2026/09/12/699832-supreme-court-of-india-sc-08.webp"
+  },
+  {
+    "id": "item-1984056831",
+    "title": "“Final Quietus” To Bhakra-Beas Power Dispute: Supreme Court Directs Punjab & Haryana To Supply 11,973 MU Energy Arrears To Himachal Pradesh",
+    "summary": "The Court held Punjab’s objections “vague and superficial,” rejected the attempt to relitigate settled issues.",
+    "source": "Aastha Kaushik",
+    "url": "https://www.verdictum.in/supreme-court/2026-insc-1200-state-of-himachal-pradesh-v-union-of-india-1625296",
+    "date": "2026-11-06",
+    "category": "news",
+    "image": "https://www.verdictum.in/h-upload/2026/11/06/1787281-supreme-court-himachal-pradesh-map-punjab-map.webp"
+  },
+  {
+    "id": "item-1622049249",
+    "title": "Manipur High Court Calls For Early Notification Of Mediation Act Provisions Governing Settlement Agreements And Their Enforcement",
+    "summary": "The Court noted that only 21 of the Mediation Act’s 65 sections had been brought into force, leaving the remaining 44 provisions dormant more than three years after the legislation was enacted.",
+    "source": "Muhib Makhdoomi",
+    "url": "https://www.verdictum.in/manipur-high-court/state-of-manipur-and-others-v-konsam-ningol-khagembam-ongbi-rebina-devi-and-another-2026mnhc260-db-1625288",
+    "date": "2026-11-06",
+    "category": "news",
+    "image": "https://www.verdictum.in/h-upload/2026/02/25/1772268-manipur-hc-imphal-chief-justice-m-sundar-justice-a-guneshwar-sharma.webp"
+  },
+  {
+    "id": "item-557422950",
+    "title": "28-Week-Old Foetus To Be Treated As Child: Punjab And Haryana High Court Enhances Motor Accident Compensation For Death Of Unborn Child",
+    "summary": "The Punjab and Haryana High Court was considering an appeal preferred by appellants-claimants (parents) being aggrieved by the award passed by the Motor Accident Claims Tribunal.",
+    "source": "Tulip Kanth",
+    "url": "https://www.verdictum.in/punjab-and-haryana-high-court/suresh-kumar-sethi-v-sanjeev-kumar-2026phhc196006-foetus-child-motor-accident-compensation-1625287",
+    "date": "2026-11-06",
+    "category": "news",
+    "image": "https://www.verdictum.in/h-upload/2026/11/06/1787284-punjab-haryana-hc-justice-parmod-goyal.webp"
+  },
+  {
+    "id": "item-114066675",
+    "title": "Barring woman from matrimonial home isn’t cruelty: Jharkhand High Court - The Indian Express",
+    "summary": "Barring woman from matrimonial home isn’t cruelty: Jharkhand High Court The Indian Express",
+    "source": "The Indian Express",
+    "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxQQjlSS3lncEF2NFlDdDRFX2JRZTdkVVhHbC13VFFfNFRvbmlzSGpfR1UtVFhuUk9vRTRGUnFPQks3RUN6Yml3RzZJVzdkZ3I2Z29VRHY3SVczYkRpdVFLUXZFejBWN3pSWEFwWDQtaF9LQnJ5VVY1QVNnODQ5VEc2Uk1maU1CYzJnZFl0VDVuNjU1X2kzRFhyMlBkS09nTlpuUXRPdTU2TFIwbVdhTE9JNENhanFPUlBQbXFR0gHCAUFVX3lxTE5MWmY4dGJIeEJsXzFkeGdOM3JpQlNpWkI1TGoxOWk4eXJ0dklwbUNJRE5hbG1oU0I4V0c5QnJ0MC1TbDI5NVc3UkZSQmNwSjJ4V1JwU2l0RzhpR1BlR2piM2VyNktZYlliXzVPTFZUYl9LQTg4RXJJUU5ubTlQMmpkTEpSYTVlTzNfVkdKZHhUR1FNMzU0WGR0VmtnTXRvejBReUtKcm90WlQ3QThVVm5aQzNvSVpvcFVHS3R5OEJRYUVn?oc=5",
+    "date": "2026-11-06",
     "category": "news"
   },
   {
-    "id": "item-1440432192",
-    "title": "From first graduate in family to High Court judge, Justice K Natarajan retires",
-    "summary": "The Kerala High Court on Wednesday held a full court reference in honour of Justice K Natarajan who retires from office today. In his farewell address, Justice Natarajan reflected on his journey from being the first g...",
-    "source": "Bar & Bench",
-    "url": "https://www.barandbench.com/news/from-first-graduate-in-family-to-high-court-judge-justice-k-natarajan-retires",
-    "date": "2026-11-05",
-    "category": "news",
-    "image": "https://cf-images.assettype.com/barandbench/2025-07-21/1laz4twd/31.jpg"
+    "id": "item-329855844",
+    "title": "Drsika Bhutani, Rupali Gujral launch Thea Law; AOR Rohit Kumar-I joins as Partner - Bar and Bench",
+    "summary": "Drsika Bhutani, Rupali Gujral launch Thea Law; AOR Rohit Kumar-I joins as Partner Bar and Bench",
+    "source": "Bar and Bench",
+    "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxNcGxkckhXbGZ6b00yWmxGeVJlVmRhalBJY2lJTXdhQzU4MEx4NEN3RlpOMXRzX2tFVC1sRHRnY0NtN0VSYnptQmlCVHQta2o4dUtNSGdlTW5QUWJrdUc3VnNZVlRvOEppMmtjZndYN2M3RjlUQVhaV3gxRlFEa2ptaVRBTVBnQ2ZPWVQ5bEptbk00ZjlkNk9Ea1c3RUpsYnhGbnFmUDJRWWU3UWxxUi1kaGJzazN0R0p6MDNkSDJZZTdtQzR1T2FFWEFObTFwRGPSAdwBQVVfeXFMTjdJT3J1MTI3R1VPVWJWQm5nQUJtd2dGYVY1QXBGQ0prSXZUSUJTZ2FKU3pSVEswaGhMcHg1VjBpSXQwZXpfTWt0dFhwNmdjRFZGa19hUGd6RHRSU09pTWw2NWxtb0p5dTBRbU1qWFFTZ3ZJMXBFRW5DeGR2TldjMXpBbmRYV0hOYVllLW1nMkNlLUpvTHpyVU95WHNmMUw4dlVEUndTbmFJVGpWS2ozRDctSkIxTzYxODdqNllQaTdpZU5nNDMxTWlLa2N3bDY4M0RJeHJJXzZvc1ZnSQ?oc=5",
+    "date": "2026-11-06",
+    "category": "news"
   },
   {
-    "id": "item-1963439583",
-    "title": "Evonile acquires 'Minipress', 'Minipres' brands from Pfizer; Shardul Amarchand Mangaldas advises",
-    "summary": "Evonile Pharma Limited has acquired the 'Minipress' and 'Minipres' brands in India from Pfizer for an aggregate consideration of approximately ₹1,250 crore.Shardul Amarchand Mangaldas & Co advised Evonile Pharma on th...",
-    "source": "Bar & Bench",
-    "url": "https://www.barandbench.com/law-firms/dealstreet/evonile-acquires-minipress-minipres-brands-from-pfizer-shardul-amarchand-mangaldas-advises",
-    "date": "2026-11-05",
-    "category": "news",
-    "image": "https://cf-images.assettype.com/barandbench/2026-10-22/p4q0lg7c/WEB-SITE-A-copy.jpg"
-  },
-  {
-    "id": "item-1473425841",
-    "title": "LiveLaw Breaking News Alerts: 05 November 2026",
-    "summary": "",
-    "source": "LiveLaw",
-    "url": "https://www.livelaw.in/top-stories/livelaw-breaking-news-alerts-05-november-2026-557408",
-    "date": "2026-11-05",
-    "category": "news",
-    "image": "https://www.livelaw.in/h-upload/2026/09/03/697961-ll-breaking-news-alerts.webp"
-  },
-  {
-    "id": "item-1408114759",
-    "title": "Property Bought Before Alleged Money Laundering Offence Not Immune From Provisional Attachment Under PMLA: Karnataka High Court",
-    "summary": "",
-    "source": "LiveLaw",
-    "url": "https://www.livelaw.in/high-court/karnataka-high-court/karnataka-high-court-pmla-property-shielded-provisional-attachment-557407",
-    "date": "2026-11-05",
-    "category": "news",
-    "image": "https://www.livelaw.in/h-upload/2026/10/26/708296-pmla-enforcement-directorate.webp"
+    "id": "item-218857171",
+    "title": "Age limits for admission to law courses withdrawn: BCI tells Supreme Court - Bar and Bench",
+    "summary": "Age limits for admission to law courses withdrawn: BCI tells Supreme Court Bar and Bench",
+    "source": "Bar and Bench",
+    "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOblhOWWloSDRRMkdIT1JyRTYzcVN1ZHBqOGNKaExFbjVNTlZsRnFvNUlmZFhDRTNEdlRSRzdSNVBTSVY3V01tSmgtUWNRZTZwMmR0b3d5Y0NMYlk2U3RqNk9SaWFOWFVNRnhaR3JiTHZ1WFE4QjdzcG8xUVYzblN5UzZzVWF4ZnJxV1hsYU1OVC1QWkRaNG1PbFZqUmo0aFZjOFRGNTlfUTMwd9IBtwFBVV95cUxOb1FCNmVfRDJGc0dwZ1RoWXVEU2Itb0xLdENaMVpObnlzVnAydFdJUGRVVDRRakZwWFpWSy1PQ0N3Ykc1VWpmcGNpQ0pEbVFkakVrS3k5eDc2X2FZTlpWZEpWRk9GQnZvQjZBOS1ocVpBQjdFTHZJbWdrZDB3R0lIUEFMOGE1OWRUX255M0xEQXF4TWJodkR3OE1hY1lSZ1Z1VzluajZNVkREQjl5Q2RuVjlNM1RsYkE?oc=5",
+    "date": "2026-11-06",
+    "category": "news"
   },
   {
     "id": "item-2091929080",
@@ -259,16 +317,6 @@
     "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxNSTI1cFBGbXNmdFI2VGF6ZW1QNGdYdzYtdXN6N1d1aXNkLVF1RTdSZ3J4RTR6ZXZTWkNScFRKMGN1UHF3U19OcjVGZ0hDbW9mXzdTUnNNOVh4ekdoc0U0c0pvZEZ6MW8tNkhPVjZQdVFsNEl4cmtVTk5LeFJRTTZOU2l6b0lzRE9mYzV5Q3JXME5mNHpyY2YxbUtPS0xVckhlOVpadGRpZndLT25PWkkyZzVuUdIBuAFBVV95cUxPRnJCaVJHa1FMTHk3UkpRZFNfYm1za1BFMFhvbE1uUmR2X0JFUHVJbm5NQWtYT2J1aVUzdUVLdFFzelU0dkIxVXdiYTB4bnJmdGY4ZUpkM3F6QjJqWGx3MHl4QjNBNWdjcUl2d1JQQWFjS2dyV0MwcEJ3Y0NhcUtWT2cyN1o5aVJaTHVRZDRpbjE1enF1NWJBX1BfMU93SC1ONHpMVW1Hd0dGbVlpaTZXVEFOQWFyajBX?oc=5",
     "date": "2026-11-05",
     "category": "news"
-  },
-  {
-    "id": "item-2082056022",
-    "title": "Tendering Apology No Substitute For Due Care: Supreme Court While Expunging Remarks By High Court Against IPS Officer",
-    "summary": "The Supreme Court was considering an appeal filed by an Officer of the Indian Police Service (IPS), presently serving as the Director of the Tamil Nadu Police Academy.",
-    "source": "Tulip Kanth",
-    "url": "https://www.verdictum.in/supreme-court/a-arun-v-varsha-sharma-2026-insc-1186-tendering-apology-adverse-remarks-ips-officer-1625107",
-    "date": "2026-11-04",
-    "category": "news",
-    "image": "https://www.verdictum.in/h-upload/2026/11/03/1787108-sc-justice-vikram-nath-centre-justice-r-mahadevan-left-and-justice-aparesh-kumar-singh-right.webp"
   },
   {
     "id": "item-1853719810",
@@ -554,15 +602,6 @@
     "category": "news"
   },
   {
-    "id": "item-1616706059",
-    "title": "Dowry cases on rise but can’t blanketly quash FIR against in-laws: Karnataka High Court - The Indian Express",
-    "summary": "Dowry cases on rise but can’t blanketly quash FIR against in-laws: Karnataka High Court The Indian Express",
-    "source": "The Indian Express",
-    "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxOd0l6SVVpY2xqNkJmck15ZmdaYkpwel8xTXduTEIycHNETWZhT1hVVDJKVHNvaFowYlRIQXdOX3lhT2tJMTNRWmoxNTY0UjFkLVpuNWdIMTNJN3cxNzYwTVFkc1dWNG5PLV9aVXRWYl9EaG5uczFuNkNoaU5kS216bWxfU2ppTTQxZWFCbUN0eG9icUFCSllQRlFmLVlLNzQ2clpXX0txVkRsRlR3RWNmb0ltczNCZFdj?oc=5",
-    "date": "2026-10-31",
-    "category": "news"
-  },
-  {
     "id": "item-2081137262",
     "title": "Consultant (Legal) Vacancy At Directorate of Plant Protection Quarantine & Storage",
     "summary": "",
@@ -571,16 +610,6 @@
     "date": "2026-10-31",
     "category": "news",
     "image": "https://www.verdictum.in/h-upload/2021/12/30/1302225-job-updates-04.webp"
-  },
-  {
-    "id": "item-450088245",
-    "title": "Moratorium U/S 14 IBC Bars Proceedings Against Corporate Debtor, Not Counterclaims Pursued By It: Bombay High Court",
-    "summary": "The Court held that Section 60(6), which excludes the moratorium period when calculating limitation for proceedings “by or against” a corporate debtor, cannot be used to expand the narrower language of Section 14(1)(a).",
-    "source": "Muhib Makhdoomi",
-    "url": "https://www.verdictum.in/bombay-high-court/a-a-estates-private-limited-through-its-resolution-professional-v-govind-niwas-co-operative-housing-society-2026bhc-os23161-1624771",
-    "date": "2026-10-30",
-    "category": "news",
-    "image": "https://www.verdictum.in/h-upload/2024/09/02/1650523-justice-somasekhar-sundaresan-bombay-hc.webp"
   },
   {
     "id": "item-644004110",
@@ -611,16 +640,6 @@
     "date": "2026-10-30",
     "category": "news",
     "image": "https://www.verdictum.in/h-upload/2026/07/21/1781251-sc-justice-j-b-pardiwala-and-justice-k-vinod-chandran.webp"
-  },
-  {
-    "id": "item-330984398",
-    "title": "Property Upon Attachment Becomes Custodia Legis: Apex Court Sets Aside Order Outsting Mother-In-Law & Sisters-In-Law From Shared Household Under DV Act",
-    "summary": "It held that under the proviso to Section 19(1)(b) of the DV Act, no order removing a woman from the shared household can be passed, and directed the raising of the attachment on the property.",
-    "source": "Aastha Kaushik",
-    "url": "https://www.verdictum.in/supreme-court/mother-in-law-sisters-in-law-cant-be-ousted-shared-household-non-appearance-of-husband-1624844",
-    "date": "2026-10-30",
-    "category": "news",
-    "image": "https://www.verdictum.in/h-upload/2026/08/10/1782265-justice-aravind-kumar-and-justice-vipul-m-pancholi-sc.webp"
   },
   {
     "id": "item-1956925887",
@@ -733,15 +752,6 @@
     "image": "https://www.verdictum.in/h-upload/2026/02/06/1768844-scupdates-01.webp"
   },
   {
-    "id": "item-1773296461",
-    "title": "Plea before Supreme Court against Tripura customary law allowing settlement of rape cases by paying fine - Bar and Bench",
-    "summary": "Plea before Supreme Court against Tripura customary law allowing settlement of rape cases by paying fine Bar and Bench",
-    "source": "Bar and Bench",
-    "url": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxPUElycGdGU0pyRWVNNy1paGRRM3Y4OEFHQklvYjhwd3daZ3dMVFl0S0RaNkhYcnZldDM1SENsOW82dlMxTmVQdWtBMnBSQjZ5MTJtaTdzSWRKdm5JMm5RLTJVb2JaekZhc0hjVlBpclZDd0E5U1E4dy1ZNDY2bWFWV1NrUWpteXV0VG9wZG1PQ2t5c01uZlBFVFRSQ0FkeEZLRFBBaExfY21iRTQzejJzdTF2UHlWMXNmTGpzNmxiRlhDdVdtZmFrVWdTdFZfcmxvS1RKMmstUFRwbU9mR1RRWS1B0gHvAUFVX3lxTE41VnBhWW5XdmhtaE1NMkgtRVhjVXVYdnFNNmg3N0xBczVzcjBDUXVDeG5ub1NVb1U4aE4xT0RZWV9HVHUzMDdnWnZLemdjU3ZqOW9KQW9DcWNBNHJfR1M0N2VQUVVxRjF4NUVLLUhIRkI2Q3c3czlJTUhxSk16dUdJWWszcG5od1JoclRndlJlYkJBY3dkWG50WEtsbGE2U25PdmxxY09va0pZMWJZZTVIOGJkNG1sWlNZdC1JSlhJOEoxOEhmeGY4aXlkTzFpWGpVRzdhcWdQMllMX2Z4cWxuZmxHYkowN3l2ckoyRi1B?oc=5",
-    "date": "2026-10-26",
-    "category": "news"
-  },
-  {
     "id": "item-349117939",
     "title": "Privacy Or Press Freedom? Inside The Legal Fight Over India’s Data Protection Law - Outlook India",
     "summary": "Privacy Or Press Freedom? Inside The Legal Fight Over India’s Data Protection Law Outlook India",
@@ -757,15 +767,6 @@
     "source": "SCC Online",
     "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxPb3dtclNkSDRVQ3FIY1owWGlsYS1LcDdqM2tEN2VJWnJBampKeXJRRFJvT3VQR0lQeVR6OWtIWlJ6VGU2M3pIcUUySUhpS2FYcEY5MVdMRnA5WHdOckdqUkdzaXBabEFZSGFXQk45NTA1dnFVQXh3WmJkSHJ0WDdiQTZYRG9Ockt3WHRyN1YyVWZGMDE3NlBPYWo2TG1QTlFlQkJYd2t6MHluWDFLeVlj?oc=5",
     "date": "2026-10-23",
-    "category": "news"
-  },
-  {
-    "id": "item-2099857696",
-    "title": "Justice Abhay Oka becomes President of Indian Law Society - Bar and Bench",
-    "summary": "Justice Abhay Oka becomes President of Indian Law Society Bar and Bench",
-    "source": "Bar and Bench",
-    "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxQaXVTRnhHd0VENEh1S3hHUkRrbS1GWWFqZzJrUk4tTUJocGN3OEJlellLWS1KRF9KU1N5MFF6YXlqcHFpVTdPVS1ieWJTWS1qTklOWjg0LThvWG1ORE9jMmE1OVVPclZucXpZWHNHN0FvYTZpRk5tTTFVT29CbmtndUFxdF90Yy1uS2trWExQZWNyNGh1NGRrdU9XeXVoaXprWTJCSFhoZ3NkZ9IBqgFBVV95cUxQaXVTRnhHd0VENEh1S3hHUkRrbS1GWWFqZzJrUk4tTUJocGN3OEJlellLWS1KRF9KU1N5MFF6YXlqcHFpVTdPVS1ieWJTWS1qTklOWjg0LThvWG1ORE9jMmE1OVVPclZucXpZWHNHN0FvYTZpRk5tTTFVT29CbmtndUFxdF90Yy1uS2trWExQZWNyNGh1NGRrdU9XeXVoaXprWTJCSFhoZ3NkZw?oc=5",
-    "date": "2026-10-20",
     "category": "news"
   },
   {
