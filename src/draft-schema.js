@@ -77,6 +77,8 @@ const select = (name, label, options, helpText = "") => ({
   helpText,
 });
 
+const optional = (field) => ({ ...field, optional: true });
+
 const placeFields = [
   select("stateOrTerritory", "State / Union Territory", STATES_AND_TERRITORIES),
   text(
@@ -110,6 +112,7 @@ export const DOCUMENT_SCHEMAS = {
       text("applicant", "Petitioner / applicant name"),
       text("respondent", "Respondent / opposite party"),
       area("facts", "Key facts (briefly, in date order)", 2500, 20),
+      optional(area("grounds", "Grounds / legal basis, if you know them (optional)", 1500, 0)),
       area("relief", "Order or relief requested", 1000, 5),
     ],
   },
@@ -132,6 +135,7 @@ export const DOCUMENT_SCHEMAS = {
         "Dishonoured cheque",
         "Other",
       ]),
+      optional(text("chequeDetails", "Cheque details, if relevant (number, date, amount, bank, date of return memo)", 400)),
       area("facts", "Relevant facts, dates, and amount if applicable", 2000, 20),
       area("demand", "What the recipient is asked to do", 800, 5),
       ...placeFields,
