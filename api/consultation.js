@@ -1,3 +1,5 @@
+import { sendJson, getRequestData, isSameOrigin, withinRateLimit, verifyTurnstile } from "./_lib/http.js";
+
 const ALLOWED_SERVICES = new Set([
   "Career Counselling",
   "CV Building & Review",
@@ -5,40 +7,6 @@ const ALLOWED_SERVICES = new Set([
   "Legal Research & Drafting",
 ]);
 const ALLOWED_CONTACT_METHODS = new Set(["Email", "WhatsApp"]);
-
-function sendJson(res, status, body) {
-  res.status(status).setHeader("Content-Type", "application/json");
-  res.end(JSON.stringify(body));
-}
-
-function getRequestData(req) {
-  if (req.body && typeof req.body === "object") return req.body;
-  if (typeof req.body === "string") {
-    try {
-      return JSON.parse(req.body);
-    } catch {
-      return null;
-    }
-  }
-  return null;
-}
-
-function isSameOrigin(req) {
-  const origin = req.headers.origin;
-  const host = req.headers.host;
-  if (typeof origin !== "string" || typeof host !== "string") return false;
-
-  try {
-    const originUrl = new URL(origin);
-    const isLocal = host.startsWith("localhost:") || host.startsWith("127.0.0.1:");
-    return (
-      originUrl.host.toLowerCase() === host.toLowerCase() &&
-      (originUrl.protocol === "https:" || (isLocal && originUrl.protocol === "http:"))
-    );
-  } catch {
-    return false;
-  }
-}
 
 function cleanText(value, maxLength) {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
@@ -54,6 +22,10 @@ export default async function handler(req, res) {
     return sendJson(res, 403, { error: "Request origin is not allowed." });
   }
 
+  if (!(await withinRateLimit(req, "consultation", 5, 3600))) {
+    return sendJson(res, 429, { error: "Too many requests. Please try again later." });
+  }
+
   const contentLength = Number(req.headers["content-length"] || 0);
   if (contentLength > 12_000) {
     return sendJson(res, 413, { error: "The submitted form is too large." });
@@ -65,6 +37,10 @@ export default async function handler(req, res) {
   }
   if (cleanText(data.website, 200)) {
     return sendJson(res, 200, { ok: true });
+  }
+
+  if (!(await verifyTurnstile(req, data.turnstileToken))) {
+    return sendJson(res, 400, { error: "Verification failed. Please refresh and try again." });
   }
 
   const name = cleanText(data.name, 100);
