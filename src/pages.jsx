@@ -1027,8 +1027,31 @@ export function Drafter() {
   const [agreed, setAgreed] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [draft, setDraft] = useState("");
+  const [notes, setNotes] = useState("");
+  const [warnings, setWarnings] = useState([]);
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const fields = DOCUMENT_SCHEMAS[docType].fields;
+
+  const copyDraft = async () => {
+    try {
+      await navigator.clipboard.writeText(draft);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError("Could not copy automatically. Please select the text and copy it manually.");
+    }
+  };
+
+  const downloadDraft = () => {
+    const blob = new Blob([draft], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${docType.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-draft.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   const updateField = (name, value) => {
     setFormData((previous) => ({ ...previous, [name]: value }));
@@ -1038,17 +1061,19 @@ export function Drafter() {
     event.preventDefault();
     setError("");
     setDraft("");
+    setNotes("");
+    setWarnings([]);
 
     if (!agreed) {
       setError("Please check the consent box before generating the draft.");
       return;
     }
 
-    const incompleteField = fields.find(
-      (field) =>
-        !formData[field.name]?.trim() ||
-        (field.minLength && formData[field.name].trim().length < field.minLength)
-    );
+    const incompleteField = fields.find((field) => {
+      const value = formData[field.name]?.trim() || "";
+      if (!value && field.optional) return false;
+      return !value || (field.minLength && value.length < field.minLength);
+    });
     if (incompleteField) {
       setError(`Please complete "${incompleteField.label}" before generating the draft.`);
       return;
@@ -1072,10 +1097,12 @@ export function Drafter() {
         throw new Error(result.error || "Unable to generate a draft right now.");
       }
       setDraft(result.draft);
+      setNotes(result.notes || "");
+      setWarnings(Array.isArray(result.warnings) ? result.warnings : []);
     } catch (requestError) {
       setError(
         requestError instanceof TypeError
-          ? "Could not reach the draft-generation endpoint. Check your connection and confirm the latest deployment includes /api/draft-petition. If it continues, check the Vercel Function logs."
+          ? "Could not reach the drafting service. Please check your connection and try again."
           : requestError instanceof Error
             ? requestError.message
             : "Unable to generate a draft right now."
@@ -1145,8 +1172,8 @@ export function Drafter() {
                   onChange={(e) => updateField(field.name, e.target.value.slice(0, field.maxLength))}
                   placeholder={field.placeholder}
                   className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
-                  required
-                  minLength={field.minLength}
+                  required={!field.optional}
+                  minLength={field.minLength || undefined}
                   maxLength={field.maxLength}
                 />
               ) : field.type === "select" ? (
@@ -1168,7 +1195,7 @@ export function Drafter() {
                   onChange={(e) => updateField(field.name, e.target.value.slice(0, field.maxLength))}
                   placeholder={field.placeholder}
                   className="mt-1 w-full rounded-lg border px-3 py-2"
-                  required
+                  required={!field.optional}
                   maxLength={field.maxLength}
                 />
               )}
@@ -1213,13 +1240,38 @@ export function Drafter() {
       {draft && (
         <div className="mt-6 rounded-xl border bg-white p-6">
           <h2 className="text-xl font-semibold">Generated draft</h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" onClick={copyDraft} className="rounded-lg border px-3 py-1.5 text-sm font-medium hover:bg-slate-50">
+              {copied ? "Copied" : "Copy"}
+            </button>
+            <button type="button" onClick={downloadDraft} className="rounded-lg border px-3 py-1.5 text-sm font-medium hover:bg-slate-50">
+              Download .txt
+            </button>
+            <button type="button" onClick={() => window.print()} className="rounded-lg border px-3 py-1.5 text-sm font-medium hover:bg-slate-50">
+              Print / Save as PDF
+            </button>
+          </div>
+          {warnings.length > 0 && (
+            <div role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+              <p className="font-semibold">Possible content not in your details - please check:</p>
+              <ul className="mt-1 list-disc pl-5">
+                {warnings.map((w) => (<li key={w}>{w}</li>))}
+              </ul>
+            </div>
+          )}
           <textarea
             aria-label="Generated draft"
-            readOnly
             rows={18}
             value={draft}
+            onChange={(e) => setDraft(e.target.value)}
             className="mt-3 w-full rounded-lg border px-3 py-2"
           />
+          {notes && (
+            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+              <p className="font-semibold">Notes for the reviewing advocate</p>
+              <p className="mt-1 whitespace-pre-wrap">{notes}</p>
+            </div>
+          )}
           <p className="mt-2 text-sm text-amber-800">
             This is a preliminary AI-generated draft, not legal advice. Verify all facts, laws,
             citations, and court requirements with a qualified advocate before use.
