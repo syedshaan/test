@@ -1,16 +1,16 @@
-import { useState } from "react";
+import { Suspense, lazy, useState } from "react";
 import { Routes, Route, Link, NavLink } from "react-router-dom";
-import {
-  Home,
-  News,
-  Jobs,
-  KnowYourLaw,
-  Consultation,
-  Drafter,
-  Policies,
-} from "./pages.jsx";
-import StartupGuide from "./StartupGuide.jsx";
-import Team from "./Team.jsx";
+import { Home } from "./pages.jsx";
+
+const named = (name) => () => import("./pages.jsx").then((m) => ({ default: m[name] }));
+const News = lazy(named("News"));
+const Jobs = lazy(named("Jobs"));
+const KnowYourLaw = lazy(named("KnowYourLaw"));
+const Consultation = lazy(named("Consultation"));
+const Drafter = lazy(named("Drafter"));
+const Policies = lazy(named("Policies"));
+const StartupGuide = lazy(() => import("./StartupGuide.jsx"));
+const Team = lazy(() => import("./Team.jsx"));
 
 const links = [
   { to: "/news", label: "News" },
@@ -50,12 +50,14 @@ function Navbar() {
         <button
           className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold shadow-sm md:hidden"
           onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          aria-controls="mobile-menu"
         >
           Menu
         </button>
       </nav>
       {open && (
-        <ul className="space-y-2 border-t bg-white px-4 py-3 md:hidden">
+        <ul id="mobile-menu" className="space-y-2 border-t bg-white px-4 py-3 md:hidden">
           {links.map((l) => (
             <li key={l.to}>
               <NavLink
@@ -108,6 +110,7 @@ export default function App() {
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800">
       <Navbar />
       <main className="flex-1">
+        <Suspense fallback={<p className="px-4 py-12 text-center text-slate-500">Loading...</p>}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/news" element={<News />} />
@@ -119,6 +122,7 @@ export default function App() {
           <Route path="/drafter" element={<Drafter />} />
           <Route path="/policies" element={<Policies />} />
         </Routes>
+        </Suspense>
       </main>
       <Footer />
     </div>
