@@ -1092,7 +1092,17 @@ export function Drafter() {
           ),
         }),
       });
-      const result = await response.json();
+      const raw = await response.text();
+      let result;
+      try {
+        result = JSON.parse(raw);
+      } catch {
+        throw new Error(
+          response.status === 504
+            ? "The drafting service took too long to respond. Please try again."
+            : "The drafting service is temporarily unavailable. Please try again in a moment."
+        );
+      }
       if (!response.ok) {
         throw new Error(result.error || "Unable to generate a draft right now.");
       }
