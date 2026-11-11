@@ -27,5 +27,13 @@
       "source": "/((?!api/|.*\\..*).*)",
       "destination": "/"
     }
-  ]
+  ],
+  "functions": {
+    "api/draft-petition.js": {
+      "maxDuration": 60
+    },
+    "api/consultation.js": {
+      "maxDuration": 30
+    }
+  }
 }
