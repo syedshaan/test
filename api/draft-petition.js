@@ -97,6 +97,7 @@ async function findUnsupportedFacts({ apiKey, model, fields, draft }) {
         temperature: 0,
         maxOutputTokens: 800,
         responseMimeType: "application/json",
+        ...thinkingOff(model),
       },
     },
   });
@@ -114,6 +115,24 @@ async function findUnsupportedFacts({ apiKey, model, fields, draft }) {
 }
 
 export default async function handler(req, res) {
+  try {
+    return await handleDraft(req, res);
+  } catch (error) {
+    console.error("[draft-petition] Unhandled error:", error instanceof Error ? error.stack : error);
+    if (!res.headersSent) {
+      return sendJson(res, 500, {
+        error: "Something went wrong while preparing the draft. Please try again.",
+      });
+    }
+  }
+}
+
+function thinkingOff(model) {
+  // Thinking adds latency and consumes output tokens; drafting does not need it.
+  return /^gemini-2\.5-flash/.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {};
+}
+
+async function handleDraft(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return sendJson(res, 405, { error: "Only POST requests are accepted." });
@@ -229,7 +248,7 @@ export default async function handler(req, res) {
     body: {
       systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
       contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: { maxOutputTokens: MAX_OUTPUT_TOKENS, temperature: 0.2 },
+      generationConfig: { maxOutputTokens: MAX_OUTPUT_TOKENS, temperature: 0.2, ...thinkingOff(model) },
     },
   });
 
