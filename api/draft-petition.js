@@ -55,7 +55,7 @@ async function callGemini({ apiKey, model, body }) {
     }
 
     const shouldRetry =
-      attempt < 1 && (!response || response.status === 429 || response.status >= 500);
+      attempt < 1 && Boolean(response) && (response.status === 429 || response.status >= 500);
     if (!shouldRetry) break;
 
     if (response) await response.body?.cancel();
@@ -128,7 +128,7 @@ export default async function handler(req, res) {
   }
 }
 
-const GEMINI_CALL_TIMEOUT_MS = 30_000;
+const GEMINI_CALL_TIMEOUT_MS = 50_000;
 
 function thinkingOff(model) {
   // Thinking adds latency and consumes output tokens; drafting does not need it.
