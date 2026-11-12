@@ -7,8 +7,9 @@ export const LEGAL_REFERENCES = {
     outline:
       "Court heading; cause title (petitioner v. respondent); petition title; numbered facts; grounds ONLY if supplied; prayer; blank place/date and signature lines.",
     reviewerChecks: [
-      "Confirm the correct forum, the governing statute, and the court's prescribed format.",
-      "Confirm limitation and whether a court fee, affidavit, or annexures are required.",
+      "Confirm the court or forum, the governing statute, and that the court's prescribed format is followed.",
+      "Confirm limitation, the court fee for the stated subject-matter value (state-specific), and whether a verification affidavit is required.",
+      "Confirm that the cause title lists all parties and that each party's details match their ID documents.",
     ],
   },
   "Legal Notice (non-payment / cheque bounce)": {
@@ -67,8 +68,9 @@ export const LEGAL_REFERENCES = {
     outline:
       "Commission heading; parties with addresses; subject; numbered facts; relief; blank place/date and signature lines.",
     reviewerChecks: [
-      "Confirm the correct Commission by pecuniary and territorial jurisdiction.",
-      "Confirm limitation, the filing fee, supporting affidavit and documents to annex.",
+      "Confirm the Commission level from the claim value under the Consumer Protection (Jurisdiction of the District, State and National Commissions) Rules, 2021, and the territorial jurisdiction of the place where the seller operates or the complainant lives.",
+      "Confirm limitation (two years from the cause of action) and the fee payable for the claim amount.",
+      "Confirm the complaint lists every annexure and that the verification is signed by the complainant.",
     ],
   },
   "RTI Application": {
