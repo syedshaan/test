@@ -1031,7 +1031,10 @@ export function Drafter() {
   const [warnings, setWarnings] = useState([]);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
-  const fields = DOCUMENT_SCHEMAS[docType].fields;
+  const fields = DOCUMENT_SCHEMAS[docType].fields.filter(
+    (field) => !field.showIf || formData[field.showIf.name] === field.showIf.equals
+  );
+  const groupOrder = [...new Set(fields.map((field) => field.group))];
 
   const copyDraft = async () => {
     try {
@@ -1071,7 +1074,7 @@ export function Drafter() {
 
     const incompleteField = fields.find((field) => {
       const value = formData[field.name]?.trim() || "";
-      if (!value && field.optional) return false;
+      if (!value && field.required === false) return false;
       return !value || (field.minLength && value.length < field.minLength);
     });
     if (incompleteField) {
@@ -1172,7 +1175,10 @@ export function Drafter() {
           <h2 className="text-lg font-semibold">
             Questions for: {docType}
           </h2>
-          {fields.map((field) => (
+          {groupOrder.map((group) => (
+          <fieldset key={group} className="space-y-4 rounded-xl border border-slate-200 p-4">
+            <legend className="px-1 text-sm font-semibold text-slate-700">{group}</legend>
+            {fields.filter((field) => field.group === group).map((field) => (
             <label key={field.name} className="block text-sm font-medium">
               {field.label}
               {field.type === "textarea" ? (
@@ -1182,7 +1188,7 @@ export function Drafter() {
                   onChange={(e) => updateField(field.name, e.target.value.slice(0, field.maxLength))}
                   placeholder={field.placeholder}
                   className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
-                  required={!field.optional}
+                  required={field.required !== false}
                   minLength={field.minLength || undefined}
                   maxLength={field.maxLength}
                 />
@@ -1191,7 +1197,7 @@ export function Drafter() {
                   value={formData[field.name] || ""}
                   onChange={(e) => updateField(field.name, e.target.value)}
                   className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
-                  required
+                  required={field.required !== false}
                 >
                   <option value="">Select an option</option>
                   {field.options.map((option) => (
@@ -1205,7 +1211,7 @@ export function Drafter() {
                   onChange={(e) => updateField(field.name, e.target.value.slice(0, field.maxLength))}
                   placeholder={field.placeholder}
                   className="mt-1 w-full rounded-lg border px-3 py-2"
-                  required={!field.optional}
+                  required={field.required !== false}
                   maxLength={field.maxLength}
                 />
               )}
@@ -1215,6 +1221,8 @@ export function Drafter() {
                 </span>
               )}
             </label>
+            ))}
+          </fieldset>
           ))}
         </div>
 
