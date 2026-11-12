@@ -37,7 +37,7 @@ async function callGemini({ apiKey, model, body }) {
   let response = null;
   let networkError = null;
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
       response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
@@ -45,6 +45,7 @@ async function callGemini({ apiKey, model, body }) {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
           body: JSON.stringify(body),
+          signal: AbortSignal.timeout(GEMINI_CALL_TIMEOUT_MS),
         }
       );
       networkError = null;
@@ -54,11 +55,11 @@ async function callGemini({ apiKey, model, body }) {
     }
 
     const shouldRetry =
-      attempt < 2 && (!response || response.status === 429 || response.status >= 500);
+      attempt < 1 && (!response || response.status === 429 || response.status >= 500);
     if (!shouldRetry) break;
 
     if (response) await response.body?.cancel();
-    await wait(1000 * 2 ** attempt + Math.floor(Math.random() * 500));
+    await wait(1000 + Math.floor(Math.random() * 500));
   }
 
   return { response, networkError };
@@ -127,9 +128,13 @@ export default async function handler(req, res) {
   }
 }
 
+const GEMINI_CALL_TIMEOUT_MS = 30_000;
+
 function thinkingOff(model) {
   // Thinking adds latency and consumes output tokens; drafting does not need it.
-  return /^gemini-2\.5-flash/.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {};
+  if (/^gemini-2\.5-flash/.test(model)) return { thinkingConfig: { thinkingBudget: 0 } };
+  if (/^gemini-3/.test(model)) return { thinkingConfig: { thinkingLevel: "minimal" } };
+  return {};
 }
 
 async function handleDraft(req, res) {
@@ -253,12 +258,15 @@ async function handleDraft(req, res) {
   });
 
   if (!response) {
+    const timedOut = networkError?.name === "TimeoutError" || networkError?.name === "AbortError";
     console.error(
-      "[draft-petition] Gemini request failed after retries:",
-      networkError instanceof Error ? networkError.message : "Unknown network error"
+      "[draft-petition] Gemini request failed:",
+      timedOut ? "timed out" : networkError instanceof Error ? networkError.message : "unknown error"
     );
     return sendJson(res, 502, {
-      error: "The drafting service could not be reached. Please try again later.",
+      error: timedOut
+        ? "Drafting took too long. Please try again, or shorten the facts."
+        : "The drafting service could not be reached. Please try again later.",
     });
   }
 
@@ -302,7 +310,7 @@ async function handleDraft(req, res) {
   const notes = markerIndex === -1 ? "" : text.slice(markerIndex + NOTES_MARKER.length).trim();
 
   let warnings = [];
-  if (process.env.DRAFT_VERIFY !== "off") {
+  if (process.env.DRAFT_VERIFY === "on") {
     warnings = await findUnsupportedFacts({ apiKey, model: verifyModel, fields, draft });
   }
 
