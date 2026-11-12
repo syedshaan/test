@@ -186,12 +186,14 @@ async function handleDraft(req, res) {
   const fields = {};
 
   for (const field of schema.fields) {
+    if (field.showIf && submittedFields[field.showIf.name] !== field.showIf.equals) continue;
+
     const value =
       typeof submittedFields[field.name] === "string"
         ? submittedFields[field.name].trim()
         : "";
 
-    if (!value && field.optional) continue;
+    if (!value && field.required === false) continue;
 
     const isValidDate =
       field.type !== "date" ||
