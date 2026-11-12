@@ -224,7 +224,7 @@ async function handleDraft(req, res) {
 
   const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
   const verifyModel = process.env.GEMINI_VERIFY_MODEL || model;
-  const refs = LEGAL_REFERENCES[docType] || { provisions: [], outline: "", reviewerChecks: [] };
+  const refs = LEGAL_REFERENCES[docType] || { sections: [], provisions: [], reviewerChecks: [] };
 
   const userPrompt = [
     `Document type: ${docType}`,
@@ -232,7 +232,8 @@ async function handleDraft(req, res) {
     "Drafting instructions for this document type:",
     schema.instruction,
     "",
-    `Suggested structure: ${refs.outline}`,
+    "Required sections, in this order (omit a section only if it is marked 'only if supplied' and the user gave no detail for it):",
+    ...refs.sections.map((section, index) => `${index + 1}. ${section}`),
     "",
     "Permitted legal references (cite only these, and only where clearly relevant):",
     refs.provisions.length ? refs.provisions.map((p) => `- ${p}`).join("\n") : "- None. Do not cite any statute.",
