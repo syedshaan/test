@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { DOCUMENT_SCHEMAS, DOCUMENT_TYPES } from "./draft-schema.js";
 import { teamMembers } from "./Team.jsx";
 
@@ -15,28 +15,81 @@ const explainers = [
     slug: "fir-basics",
     title: "What is an FIR and how do you file one?",
     summary: "A plain-language guide to filing a First Information Report.",
+    body: [
+      "A First Information Report (FIR) is the written record of a cognisable offence reported to the police. In criminal procedure it is governed by Section 173 of the Bharatiya Nagarik Suraksha Sanhita, 2023, which replaced Section 154 of the CrPC on 1 July 2024.",
+      "You can go to the police station that has jurisdiction over the place where the offence happened. Under the BNSS, you can also report online or by email in some States, and a 'zero FIR' can be registered at any station, then transferred.",
+      "Ask for a copy of the FIR free of charge. Check that the facts, dates, names and the list of accused are recorded as you told them. If the police refuse to register it, you can send the complaint in writing to the Superintendent of Police.",
+      "Keep a copy of the FIR number and the date. Tell a qualified advocate about the case before you respond to any notice.",
+    ],
   },
   {
     slug: "tenant-rights",
     title: "Basic tenant rights in India",
     summary: "Know your rights before signing or ending a rental agreement.",
+    body: [
+      "Your rights depend on your State's rent law and on whether the agreement is a registered lease or a leave-and-licence arrangement. The Model Tenancy Act, 2019 has been adopted by some States.",
+      "Under Section 106 of the Transfer of Property Act, 1882, a monthly tenancy can be ended by a 15-day notice unless the agreement says otherwise. Leases over one year must be registered under Section 17 of the Registration Act, 1908.",
+      "Before paying a deposit, check the written agreement for the amount, the refund conditions and the notice period. Ask for a receipt for every payment.",
+      "Do not cut off electricity or water or remove belongings to force a tenant out. Seek a lawful eviction order from the rent court or civil court.",
+    ],
   },
   {
     slug: "cheque-bounce",
     title: "Cheque bounce: what happens under Section 138?",
     summary: "The steps, timelines and notices involved in a cheque bounce case.",
+    body: [
+      "Under Section 138 of the Negotiable Instruments Act, 1881, a cheque returned unpaid because of insufficient funds can lead to a criminal complaint, if the steps below are followed.",
+      "The payee must present the cheque within its validity period, which is three months. After the bank returns it, the payee must send a written demand notice within 30 days of receiving the bank's memo.",
+      "The drawer then has 15 days from receiving the notice to pay. If the drawer does not pay, the payee may file a complaint in the court within one month after the 15-day period ends.",
+      "Keep the cheque, the bank memo, the notice and its proof of delivery. Get an advocate to draft the notice, because a defective notice can defeat the complaint.",
+    ],
   },
   {
     slug: "consumer-complaint",
     title: "How to file a consumer complaint",
     summary: "Where and how to complain about defective goods or poor service.",
+    body: [
+      "A consumer complaint can be filed before the District, State or National Consumer Disputes Redressal Commission, depending on the value of the claim. Complaints can be filed online on the e-Daakhil portal.",
+      "Complaints must generally be filed within two years from the date the cause of action arose, under Section 69 of the Consumer Protection Act, 2019.",
+      "Before filing, complain to the seller or service provider in writing and keep a record of the reply. Keep the invoice, warranty card, and any emails or messages.",
+      "The complaint should state the facts in date order, the relief you want, and the documents you are attaching. Pay the fee set for the claim amount. Confirm the current fee and jurisdiction with the Commission or an advocate.",
+    ],
   },
   {
     slug: "rti-basics",
     title: "Using the Right to Information Act",
     summary: "How to file an RTI application and what to expect.",
+    body: [
+      "Under Section 6(1) of the Right to Information Act, 2005, any citizen can request information held by a public authority. You do not need to give reasons, as provided by Section 6(2).",
+      "Address the application to the Public Information Officer (PIO) of the department concerned. Ask for specific information or records rather than broad questions.",
+      "The authority must decide within 30 days under Section 7(1). If the PIO does not reply, or you are refused, you can file a first appeal under Section 19.",
+      "The application fee is set by the central or State rules and is usually Rs 10. Check the fee and payment method for that authority before filing, and keep a copy of the application and the receipt.",
+    ],
   },
 ];
+
+const SITE_URL = "https://pleadlaw.vercel.app";
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
+
+function useDocumentMeta(title, description, path = "/") {
+  useEffect(() => {
+    document.title = title;
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "description";
+      document.head.appendChild(meta);
+    }
+    meta.content = description;
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.rel = "canonical";
+      document.head.appendChild(canonical);
+    }
+    canonical.href = `${SITE_URL}${path}`;
+  }, [title, description, path]);
+}
 
 // Loads a JSON file from /public. Returns { data, loading, error }.
 function useJson(path) {
@@ -112,6 +165,12 @@ function compareJobsByVacancyCount(a, b) {
   return vacanciesB - vacanciesA || new Date(b.posted) - new Date(a.posted);
 }
 
+function compareJobsByClosingDate(a, b) {
+  const deadlineA = a.lastDate ? Date.parse(a.lastDate) : Infinity;
+  const deadlineB = b.lastDate ? Date.parse(b.lastDate) : Infinity;
+  return deadlineA - deadlineB || compareJobsByVacancyCount(a, b);
+}
+
 function isPreferredJob(job) {
   return /\b(?:internships?|interns?|ministry|ministries|government|govt\.?|big\s*four|deloitte|pwc|pricewaterhousecoopers|ey|ernst\s*(?:and|&)\s*young|kpmg)\b/i.test(
     `${job.title || ""} ${job.organisation || ""} ${job.source || ""} ${job.sector || job.type || ""}`
@@ -151,7 +210,6 @@ function jobTitleTokens(title) {
 
 function deduplicateJobs(jobs, { preferPreferred = true } = {}) {
   const selected = [];
-  const seenVacancyCounts = new Set();
   const ordered = preferPreferred
     ? [...jobs].sort((a, b) =>
         Number(isPreferredJob(b)) - Number(isPreferredJob(a)) ||
@@ -161,9 +219,7 @@ function deduplicateJobs(jobs, { preferPreferred = true } = {}) {
   for (const job of ordered) {
     if (
       Number.isInteger(job.vacancyCount) &&
-      job.vacancyCount > 0 &&
-      (job.vacancyCount > MAX_JOB_VACANCIES ||
-        seenVacancyCounts.has(job.vacancyCount))
+      (job.vacancyCount <= 0 || job.vacancyCount > MAX_JOB_VACANCIES)
     ) {
       continue;
     }
@@ -189,9 +245,6 @@ function deduplicateJobs(jobs, { preferPreferred = true } = {}) {
     });
     if (!duplicate) {
       selected.push(job);
-      if (Number.isInteger(job.vacancyCount)) {
-        seenVacancyCounts.add(job.vacancyCount);
-      }
     }
   }
   return selected;
@@ -241,6 +294,11 @@ function diversifyBySource(items) {
 /* ---------- HOME ---------- */
 
 export function Home() {
+  useDocumentMeta(
+    "Pleadlaw | Legal resources and Startup Guide",
+    "Explore Indian legal news, curated law jobs, a practical Startup Guide, guided document drafting and consultation support.",
+    "/"
+  );
   const { data: news } = useJson("/news.json");
   const { data: jobs } = useJson("/jobs.json");
 
@@ -497,6 +555,11 @@ export function News() {
   const { data, loading, error } = useJson("/news.json");
   const [category, setCategory] = useState("All");
   const [query, setQuery] = useState("");
+  useDocumentMeta(
+    "Indian legal news | Pleadlaw",
+    "Latest developments in Indian law, linked to original publisher sources.",
+    "/news"
+  );
 
   const categories = ["All", ...new Set(data.map((n) => n.category).filter(Boolean))];
 
@@ -517,7 +580,9 @@ export function News() {
         </p>
       </div>
 
+      <label htmlFor="news-search" className="sr-only">Search news</label>
       <input
+        id="news-search"
         type="text"
         placeholder="Search news..."
         value={query}
@@ -529,6 +594,7 @@ export function News() {
         {categories.map((c) => (
           <button
             key={c}
+            aria-pressed={category === c}
             onClick={() => setCategory(c)}
             className={`rounded-full border px-3 py-1 text-sm ${
               category === c ? "bg-brand-600 text-white" : "bg-white"
@@ -685,9 +751,18 @@ export function Jobs() {
   const { data, loading, error } = useJson("/jobs.json");
   const [type, setType] = useState("All");
   const [query, setQuery] = useState("");
+  const [sortBy, setSortBy] = useState("vacancies");
+  useDocumentMeta(
+    "Law jobs in India | Pleadlaw",
+    "Recent Indian legal jobs and internships with vacancy counts and deadlines, updated from verified sources.",
+    "/jobs"
+  );
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const recentJobs = deduplicateJobs(data.filter(
     (job) =>
       isRecentJob(job.posted) &&
+      (!job.lastDate || new Date(job.lastDate) >= today) &&
       (!job.autoCollected || isRelevantJob(job)) &&
       hasJobSource(job) &&
       (job.sector || job.type) &&
@@ -706,9 +781,11 @@ export function Jobs() {
         .toLowerCase()
         .includes(query.toLowerCase())
     );
-  const items = type === "All" && !query
+  const items = (type === "All" && !query && sortBy === "vacancies"
     ? selectJobResults(filteredJobs)
-    : filteredJobs.sort(compareJobsByVacancyCount).slice(0, MAX_JOB_RESULTS);
+    : [...filteredJobs]
+        .sort(sortBy === "closing" ? compareJobsByClosingDate : compareJobsByVacancyCount)
+        .slice(0, MAX_JOB_RESULTS));
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-12 md:px-6">
@@ -719,13 +796,16 @@ export function Jobs() {
         Indian legal jobs and internships posted within the last {JOB_MAX_AGE_DAYS} days.
         Showing up to {MAX_JOB_RESULTS} results, including at least {MIN_PREFERRED_JOB_RESULTS} opportunities
         from internships, ministries, Big Four firms, and government law colleges when available.
-        Only postings reporting a unique vacancy count up to {MAX_JOB_VACANCIES} are shown.
+        Postings with a vacancy count above {MAX_JOB_VACANCIES} are excluded.
+        Postings past their deadline are hidden.
         Vacancy counts and deadlines appear only
         when stated in the source. Confirm details with the employer before applying.
         </p>
       </div>
 
+      <label htmlFor="job-search" className="sr-only">Search jobs</label>
       <input
+        id="job-search"
         type="text"
         placeholder="Search by post, organisation or location..."
         value={query}
@@ -733,10 +813,11 @@ export function Jobs() {
         className="mt-6 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
       />
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         {types.map((t) => (
           <button
             key={t}
+            aria-pressed={type === t}
             onClick={() => setType(t)}
             className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
               type === t ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-violet-300"
@@ -745,7 +826,24 @@ export function Jobs() {
             {t}
           </button>
         ))}
+        <label htmlFor="job-sort" className="ml-auto text-sm text-slate-600">
+          Sort by{" "}
+          <select
+            id="job-sort"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="rounded-lg border border-slate-200 bg-white px-2 py-1"
+          >
+            <option value="vacancies">Most vacancies</option>
+            <option value="closing">Closing soon</option>
+          </select>
+        </label>
       </div>
+      {!loading && !error && (
+        <p className="mt-3 text-sm text-slate-500" aria-live="polite">
+          Showing {items.length} {items.length === 1 ? "opportunity" : "opportunities"}
+        </p>
+      )}
 
       {loading && <p className="mt-6">Loading...</p>}
       {error && (
@@ -769,26 +867,84 @@ export function Jobs() {
 /* ---------- KNOW YOUR LAW ---------- */
 
 export function KnowYourLaw() {
+  const [query, setQuery] = useState("");
+  useDocumentMeta(
+    "Know your law | Pleadlaw",
+    "Plain-language explainers on FIRs, tenant rights, cheque bounce, consumer complaints and the RTI Act.",
+    "/know-your-law"
+  );
+  const matches = explainers.filter((e) =>
+    `${e.title} ${e.summary}`.toLowerCase().includes(query.toLowerCase())
+  );
   return (
     <section className="mx-auto max-w-7xl px-4 py-12 md:px-6">
       <div className="mb-8 rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-900 px-6 py-10 text-white md:px-10">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-200">Legal essentials</p>
         <h1 className="mt-3 text-4xl font-extrabold tracking-tight md:text-5xl">Know your law</h1>
-        <p className="mt-3 text-indigo-100/80">Plain-language explainers on Indian law.</p>
+        <p className="mt-3 text-indigo-100/80">Plain-language explainers on Indian law. General information only, not legal advice.</p>
       </div>
+      <label htmlFor="explainer-search" className="sr-only">Search explainers</label>
+      <input
+        id="explainer-search"
+        type="text"
+        placeholder="Search explainers..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        className="mb-6 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
+      />
+      {matches.length === 0 && <p className="text-slate-500">No explainers match your search.</p>}
       <div className="grid gap-5 md:grid-cols-2">
-        {explainers.map((e) => (
+        {matches.map((e) => (
           <article key={e.slug} className="surface-card rounded-2xl p-6">
             <span className="text-xs font-bold uppercase tracking-[0.18em] text-brand-600">Plain-language guide</span>
-            <h2 className="mt-3 text-lg font-bold text-slate-900">{e.title}</h2>
+            <h2 className="mt-3 text-lg font-bold text-slate-900">
+              <Link to={`/know-your-law/${e.slug}`} className="hover:text-brand-600">{e.title}</Link>
+            </h2>
             <p className="mt-2 text-sm leading-relaxed text-slate-600">{e.summary}</p>
-            <Link to="/consultation" className="mt-5 inline-block text-sm font-semibold text-brand-700 hover:text-brand-500">
-              Need help with this? Book a consultation →
+            <Link to={`/know-your-law/${e.slug}`} className="mt-5 inline-block text-sm font-semibold text-brand-700 hover:text-brand-500">
+              Read the guide →
             </Link>
           </article>
         ))}
       </div>
     </section>
+  );
+}
+
+export function KnowYourLawDetail() {
+  const { slug } = useParams();
+  const explainer = explainers.find((e) => e.slug === slug);
+  useDocumentMeta(
+    explainer ? `${explainer.title} | Pleadlaw` : "Guide not found | Pleadlaw",
+    explainer ? explainer.summary : "This guide could not be found.",
+    `/know-your-law/${slug}`
+  );
+  if (!explainer) {
+    return (
+      <section className="mx-auto max-w-3xl px-4 py-12">
+        <h1 className="text-3xl font-bold">Guide not found</h1>
+        <Link to="/know-your-law" className="mt-4 inline-block font-semibold text-brand-700">← Back to Know your law</Link>
+      </section>
+    );
+  }
+  return (
+    <article className="mx-auto max-w-3xl px-4 py-12">
+      <Link to="/know-your-law" className="text-sm font-semibold text-brand-700 hover:text-brand-500">← Know your law</Link>
+      <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900">{explainer.title}</h1>
+      <p className="mt-3 text-slate-600">{explainer.summary}</p>
+      <div className="mt-6 space-y-4 leading-relaxed text-slate-700">
+        {explainer.body.map((paragraph) => (
+          <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+        ))}
+      </div>
+      <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        This guide is general information only and does not replace advice from a qualified advocate. Laws and fees change, so check the current position before acting.
+      </p>
+      <div className="mt-8 flex flex-wrap gap-3">
+        <Link to="/consultation" className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Book a consultation</Link>
+        <Link to="/drafter" className="rounded-lg border px-4 py-2 text-sm font-semibold">Draft a document</Link>
+      </div>
+    </article>
   );
 }
 
@@ -799,6 +955,20 @@ export function Consultation() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState("");
   const [submitError, setSubmitError] = useState("");
+  useDocumentMeta(
+    "Book a legal consultation | Pleadlaw",
+    "Request a consultation on career, CV, legal research or drafting. Submitting a form does not create an advocate-client relationship.",
+    "/consultation"
+  );
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY || document.getElementById("cf-turnstile-script")) return;
+    const script = document.createElement("script");
+    script.id = "cf-turnstile-script";
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  }, []);
   const [form, setForm] = useState({
     name: "",
     region: "",
@@ -825,12 +995,27 @@ export function Consultation() {
     setSubmitStatus("");
 
     try {
+      const turnstileToken =
+        document.querySelector('[name="cf-turnstile-response"]')?.value || "";
+      if (TURNSTILE_SITE_KEY && !turnstileToken) {
+        throw new Error("Please complete the verification check before sending.");
+      }
       const response = await fetch("/api/consultation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, consent: agreed }),
+        body: JSON.stringify({ ...form, consent: agreed, turnstileToken }),
       });
-      const result = await response.json();
+      const raw = await response.text();
+      let result;
+      try {
+        result = JSON.parse(raw);
+      } catch {
+        throw new Error(
+          response.status === 504
+            ? "Sending took too long. Please try again."
+            : "The request service is temporarily unavailable. Please try again in a moment."
+        );
+      }
       if (!response.ok) {
         throw new Error(result.error || "We could not send your request.");
       }
@@ -1011,6 +1196,10 @@ export function Consultation() {
           </p>
         )}
 
+        {TURNSTILE_SITE_KEY && (
+          <div className="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} />
+        )}
+
         <button
           type="submit"
           disabled={!agreed || isSubmitting}
@@ -1026,6 +1215,11 @@ export function Consultation() {
 /* ---------- AI DRAFTER ---------- */
 
 export function Drafter() {
+  useDocumentMeta(
+    "AI document drafter for India | Pleadlaw",
+    "Guided preliminary drafts of petitions, legal notices, rent agreements, affidavits, NDAs, consumer complaints and RTI applications. Review with an advocate.",
+    "/drafter"
+  );
   const [docType, setDocType] = useState(DOCUMENT_TYPES[0]);
   const [formData, setFormData] = useState({});
   const [agreed, setAgreed] = useState(false);
@@ -1307,6 +1501,11 @@ export function Drafter() {
 /* ---------- POLICIES ---------- */
 
 export function Policies() {
+  useDocumentMeta(
+    "Policies and disclaimers | Pleadlaw",
+    "Disclaimer, AI draft notice, fees, news and job listing terms, and the privacy notice for Pleadlaw.",
+    "/policies"
+  );
   return (
     <section className="mx-auto max-w-3xl px-4 py-12">
       <h1 className="text-3xl font-bold">Policies and Disclaimers</h1>
@@ -1341,13 +1540,41 @@ export function Policies() {
         accuracy. Please verify details on the official source before relying on them.
       </p>
 
-      <h2 className="mt-8 text-xl font-semibold">Privacy</h2>
+      <h2 className="mt-8 text-xl font-semibold">Privacy notice</h2>
       <p className="mt-2 text-slate-600">
-        We collect the details you submit (such as name, region, mobile number, email and query) only
-        to respond to your request. Details entered in the AI Drafter are sent to Google Gemini to
-        generate a draft and are not saved by this website. Avoid submitting unnecessary personal
-        or confidential information. Contact us to request correction or deletion of consultation
-        data.
+        This notice explains how Pleadlaw handles personal data under the Digital Personal Data
+        Protection Act, 2023.
+      </p>
+      <ul className="mt-3 list-disc space-y-2 pl-6 text-slate-600">
+        <li>
+          <strong>What we collect:</strong> details you submit in the consultation form (name, city or
+          State, mobile number, email and query) and any contact details you choose to share.
+        </li>
+        <li>
+          <strong>Why:</strong> to respond to your consultation request. We do not use consultation data
+          for advertising.
+        </li>
+        <li>
+          <strong>AI Drafter:</strong> the details you enter are sent to Google Gemini to produce a draft.
+          This website does not store the drafts or the details you enter in the Drafter. Google's
+          handling of that data is governed by its own terms.
+        </li>
+        <li>
+          <strong>Retention:</strong> consultation emails are kept only as long as needed to respond and
+          for records of the request, and are then deleted.
+        </li>
+        <li>
+          <strong>Your rights:</strong> you can ask us to correct, access or delete your data, and withdraw
+          consent. Contact us through the consultation page and we will respond within a reasonable time.
+        </li>
+        <li>
+          <strong>Sharing:</strong> we do not sell personal data. Service providers that deliver emails or
+          verify forms receive only the data needed for that purpose.
+        </li>
+      </ul>
+      <p className="mt-3 text-sm text-slate-500">
+        Please do not submit information that is not needed for your request, especially sensitive
+        personal or financial data.
       </p>
     </section>
   );
