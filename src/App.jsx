@@ -6,6 +6,7 @@ const named = (name) => () => import("./pages.jsx").then((m) => ({ default: m[na
 const News = lazy(named("News"));
 const Jobs = lazy(named("Jobs"));
 const KnowYourLaw = lazy(named("KnowYourLaw"));
+const KnowYourLawDetail = lazy(named("KnowYourLawDetail"));
 const Consultation = lazy(named("Consultation"));
 const Drafter = lazy(named("Drafter"));
 const Policies = lazy(named("Policies"));
@@ -118,6 +119,7 @@ export default function App() {
           <Route path="/startup-guide" element={<StartupGuide />} />
           <Route path="/team" element={<Team />} />
           <Route path="/know-your-law" element={<KnowYourLaw />} />
+          <Route path="/know-your-law/:slug" element={<KnowYourLawDetail />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/drafter" element={<Drafter />} />
           <Route path="/policies" element={<Policies />} />
