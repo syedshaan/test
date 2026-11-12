@@ -1,188 +1,478 @@
-import { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
-import { DOCUMENT_SCHEMAS, DOCUMENT_TYPES } from "./draft-schema.js";
-import { teamMembers } from "./Team.jsx";
+// scripts/fetch-feeds.cjs
+//
+// Runs every 6 hours via GitHub Actions.
+// Fetches configured RSS feeds and writes candidate items into
+// news-pending.json and jobs-pending.json for manual review.
+//
+// NEWS: after being added to news-pending.json, items are also
+// auto-published directly into news.json (direct auto-publish mode),
+// skipping anything already published and anything that still has
+// leftover HTML entities or missing title/link (safety filter).
+// New items are capped per source per run to keep sources balanced.
+//
+// JOBS: matched listings are retained as leads and auto-published with their
+// source link. Auto-publication does not mean a vacancy has been verified.
 
-/* ---------- shared helpers ---------- */
+const fs = require("fs");
+const path = require("path");
+const https = require("https");
+
+const CONFIG_PATH = path.join(__dirname, "feeds.config.json");
+const PUBLIC_DIR = path.join(__dirname, "..", "public");
+const NEWS_PENDING_PATH = path.join(PUBLIC_DIR, "news-pending.json");
+const JOBS_PENDING_PATH = path.join(PUBLIC_DIR, "jobs-pending.json");
+const NEWS_PATH = path.join(PUBLIC_DIR, "news.json");
+const JOBS_PATH = path.join(PUBLIC_DIR, "jobs.json");
 
 const JOB_MAX_AGE_DAYS = 20;
-const MAX_JOB_RESULTS = 50;
-const MIN_PREFERRED_JOB_RESULTS = 20;
+const JOB_VACANCY_REGEX =
+  /\b(?:vacanc(?:y|ies)|hiring|jobs?|job openings?|positions? available|applications? invited|invites? applications?|apply\s+(?:for|online|now|by|before|till|until)|recruitment(?:\s+(?:notification|drive|for))?|recruit(?:s|ed|ing)?\s+(?:for|to)|to recruit|internships?|interns?(?:\s+(?:positions?|opportunities))?|\d+\s+(?:posts?|positions?|vacancies|openings))\b/i;
+const LEGAL_JOB_ROLE_REGEX =
+  /\b(?:spa|jca)\b|\b(?:law|legal)\s+(?:officers?|assistants?|associates?|internships?|interns?|researchers?|research associates?|clerks?|consultants?|advisers?|advisors?|counsel|executives?|managers?|faculty|professors?|lecturers?|fellows?|analysts?|secretaries|trainees?|jobs?|vacanc(?:y|ies))\b|\b(?:advocates?|lawyers?|paralegals?|prosecutors?|solicitors?|barristers?)\b|\b(?:judicial services?|civil judges?|district judges?|judicial magistrates?|court (?:assistants?|clerks?|masters?|readers?|typists?|stenographers?|officers?|interpreters?|translators?))\b/i;
+const GENERAL_JOB_ROLE_REGEX =
+  /\b(?:assistant professors?|professors?|lecturers?|faculty|internships?|interns?|officers?|assistants?|associates?|consultants?|analysts?|managers?|executives?|researchers?|fellows?|teachers?|deans?)\b/i;
+const BIG_FOUR_REGEX = /\b(?:big\s*four|deloitte|pwc|pricewaterhousecoopers|ey|ernst\s*(?:and|&)\s*young|kpmg)\b/i;
 const MAX_JOB_VACANCIES = 2000;
+// Max new news items taken from each source per run (keeps sources balanced)
+const MAX_NEWS_PER_SOURCE = 3;
+const MAX_PUBLISHED_NEWS_PER_SOURCE = 5;
 
-const explainers = [
-  {
-    slug: "fir-basics",
-    title: "What is an FIR and how do you file one?",
-    summary: "A plain-language guide to filing a First Information Report.",
-    body: [
-      "A First Information Report (FIR) is the written record of a cognisable offence reported to the police. In criminal procedure it is governed by Section 173 of the Bharatiya Nagarik Suraksha Sanhita, 2023, which replaced Section 154 of the CrPC on 1 July 2024.",
-      "You can go to the police station that has jurisdiction over the place where the offence happened. Under the BNSS, you can also report online or by email in some States, and a 'zero FIR' can be registered at any station, then transferred.",
-      "Ask for a copy of the FIR free of charge. Check that the facts, dates, names and the list of accused are recorded as you told them. If the police refuse to register it, you can send the complaint in writing to the Superintendent of Police.",
-      "Keep a copy of the FIR number and the date. Tell a qualified advocate about the case before you respond to any notice.",
-    ],
-  },
-  {
-    slug: "tenant-rights",
-    title: "Basic tenant rights in India",
-    summary: "Know your rights before signing or ending a rental agreement.",
-    body: [
-      "Your rights depend on your State's rent law and on whether the agreement is a registered lease or a leave-and-licence arrangement. The Model Tenancy Act, 2019 has been adopted by some States.",
-      "Under Section 106 of the Transfer of Property Act, 1882, a monthly tenancy can be ended by a 15-day notice unless the agreement says otherwise. Leases over one year must be registered under Section 17 of the Registration Act, 1908.",
-      "Before paying a deposit, check the written agreement for the amount, the refund conditions and the notice period. Ask for a receipt for every payment.",
-      "Do not cut off electricity or water or remove belongings to force a tenant out. Seek a lawful eviction order from the rent court or civil court.",
-    ],
-  },
-  {
-    slug: "cheque-bounce",
-    title: "Cheque bounce: what happens under Section 138?",
-    summary: "The steps, timelines and notices involved in a cheque bounce case.",
-    body: [
-      "Under Section 138 of the Negotiable Instruments Act, 1881, a cheque returned unpaid because of insufficient funds can lead to a criminal complaint, if the steps below are followed.",
-      "The payee must present the cheque within its validity period, which is three months. After the bank returns it, the payee must send a written demand notice within 30 days of receiving the bank's memo.",
-      "The drawer then has 15 days from receiving the notice to pay. If the drawer does not pay, the payee may file a complaint in the court within one month after the 15-day period ends.",
-      "Keep the cheque, the bank memo, the notice and its proof of delivery. Get an advocate to draft the notice, because a defective notice can defeat the complaint.",
-    ],
-  },
-  {
-    slug: "consumer-complaint",
-    title: "How to file a consumer complaint",
-    summary: "Where and how to complain about defective goods or poor service.",
-    body: [
-      "A consumer complaint can be filed before the District, State or National Consumer Disputes Redressal Commission, depending on the value of the claim. Complaints can be filed online on the e-Daakhil portal.",
-      "Complaints must generally be filed within two years from the date the cause of action arose, under Section 69 of the Consumer Protection Act, 2019.",
-      "Before filing, complain to the seller or service provider in writing and keep a record of the reply. Keep the invoice, warranty card, and any emails or messages.",
-      "The complaint should state the facts in date order, the relief you want, and the documents you are attaching. Pay the fee set for the claim amount. Confirm the current fee and jurisdiction with the Commission or an advocate.",
-    ],
-  },
-  {
-    slug: "rti-basics",
-    title: "Using the Right to Information Act",
-    summary: "How to file an RTI application and what to expect.",
-    body: [
-      "Under Section 6(1) of the Right to Information Act, 2005, any citizen can request information held by a public authority. You do not need to give reasons, as provided by Section 6(2).",
-      "Address the application to the Public Information Officer (PIO) of the department concerned. Ask for specific information or records rather than broad questions.",
-      "The authority must decide within 30 days under Section 7(1). If the PIO does not reply, or you are refused, you can file a first appeal under Section 19.",
-      "The application fee is set by the central or State rules and is usually Rs 10. Check the fee and payment method for that authority before filing, and keep a copy of the application and the receipt.",
-    ],
-  },
-];
+// ---------- helpers ----------
 
-const SITE_URL = "https://pleadlaw.vercel.app";
-const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
-
-function useDocumentMeta(title, description, path = "/") {
-  useEffect(() => {
-    document.title = title;
-    let meta = document.querySelector('meta[name="description"]');
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "description";
-      document.head.appendChild(meta);
-    }
-    meta.content = description;
-    let canonical = document.querySelector('link[rel="canonical"]');
-    if (!canonical) {
-      canonical = document.createElement("link");
-      canonical.rel = "canonical";
-      document.head.appendChild(canonical);
-    }
-    canonical.href = `${SITE_URL}${path}`;
-  }, [title, description, path]);
+function stripHtml(html) {
+  if (!html) return "";
+  let decoded = html;
+  for (let i = 0; i < 3; i++) {
+    const next = decodeHtmlEntities(decoded);
+    if (next === decoded) break;
+    decoded = next;
+  }
+  return decoded
+    .replace(/<[^>]*>/g, "")
+    .replace(/&(#x[\da-f]+|#\d+|[a-z]+);/gi, (entity) =>
+      decodeHtmlEntities(entity)
+    )
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-// Loads a JSON file from /public. Returns { data, loading, error }.
-function useJson(path) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+function decodeHtmlEntities(text) {
+  const namedEntities = {
+    amp: "&",
+    apos: "'",
+    gt: ">",
+    lt: "<",
+    nbsp: " ",
+    quot: '"',
+  };
 
-  useEffect(() => {
-    fetch(path)
-      .then((r) => {
-        if (!r.ok) throw new Error("Failed to load");
-        return r.json();
-      })
-      .then((d) => {
-        setData(Array.isArray(d) ? d : Array.isArray(d?.jobs) ? d.jobs : []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError(true);
-        setLoading(false);
-      });
-  }, [path]);
+  return text.replace(/&(#x[\da-f]+|#\d+|[a-z]+);/gi, (entity, value) => {
+    if (value[0] !== "#") {
+      return namedEntities[value.toLowerCase()] || entity;
+    }
 
-  return { data, loading, error };
-}
-
-function formatDate(d) {
-  if (!d) return "";
-  const dt = new Date(d);
-  if (isNaN(dt)) return d;
-  return dt.toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
+    const codePoint = value[1].toLowerCase() === "x"
+      ? Number.parseInt(value.slice(2), 16)
+      : Number.parseInt(value.slice(1), 10);
+    if (
+      !Number.isInteger(codePoint) ||
+      codePoint < 0 ||
+      codePoint > 0x10ffff ||
+      (codePoint >= 0xd800 && codePoint <= 0xdfff)
+    ) {
+      return entity;
+    }
+    return String.fromCodePoint(codePoint);
   });
 }
 
-function isRecentJob(posted, now = Date.now()) {
-  const timestamp = Date.parse(posted || "");
+function getJobSector(text) {
+  if (/\b(?:legal\s+)?internships?\b|\binterns?\b/i.test(text)) {
+    return "Legal internships";
+  }
+  if (
+    BIG_FOUR_REGEX.test(text) &&
+    /\b(?:legal|law|tax|audit|compliance|risk|forensic|internships?|interns?)\b/i.test(
+      text
+    )
+  ) {
+    return "Big Four & corporate";
+  }
+  if (
+    /\b(?:government|govt\.?|central|state)\b/i.test(text) &&
+    /\b(?:college|university|institute)\b/i.test(text) &&
+    /\b(?:law|legal)\b/i.test(text) &&
+    /\b(?:assistant professors?|professors?|lecturers?|faculty|deans?)\b/i.test(
+      text
+    )
+  ) {
+    return "Government law colleges";
+  }
+  if (
+    /\b(?:supreme court|high court|district court|judicial service|judiciary|court assistant|court clerk|court\s+(?:of|recruitment|vacanc(?:y|ies)|invites?|seeks?))\b/i.test(
+      text
+    )
+  ) {
+    return "Courts & judiciary";
+  }
+  if (
+    /\b(?:government|govt\.?|ministry|department|commission|authority|public sector|psu|state service|central service|legal services authority)\b/i.test(
+      text
+    )
+  ) {
+    return "Government & ministries";
+  }
+  if (
+    /\b(?:law firm|legal firm|advocates? firm|private sector|private limited|corporate|company|firm|in-house|law office|llp|limited|ltd\.?)\b/i.test(
+      text
+    )
+  ) {
+    return "Law firms & private sector";
+  }
+  return "";
+}
+
+function getRecentJobDate(pubDate, now = Date.now()) {
+  const timestamp = Date.parse(pubDate || "");
+  if (Number.isNaN(timestamp) || timestamp > now) return null;
   const age = now - timestamp;
+  return age <= JOB_MAX_AGE_DAYS * 24 * 60 * 60 * 1000
+    ? new Date(timestamp)
+    : null;
+}
+
+function isEligibleJobAnnouncement(item, now = Date.now()) {
+  const text = getJobText(item);
   return (
-    !Number.isNaN(timestamp) &&
-    age >= 0 &&
-    age <= JOB_MAX_AGE_DAYS * 24 * 60 * 60 * 1000
+    item.country === "India" &&
+    Boolean(item.title) &&
+    isHttpsUrl(item.link) &&
+    Boolean(getRecentJobDate(item.pubDate, now)) &&
+    hasRelevantJobRole(item.title, text) &&
+    JOB_VACANCY_REGEX.test(text) &&
+    Boolean(item.sector || getJobSector(text)) &&
+    (extractVacancyCount(text) === null ||
+      extractVacancyCount(text) <= MAX_JOB_VACANCIES)
   );
 }
 
-function isSpecificLegalJobTitle(title = "") {
-  return /\b(?:spa|jca)\b|\b(?:law|legal)\s+(?:officers?|assistants?|associates?|internships?|interns?|researchers?|research associates?|clerks?|consultants?|advisers?|advisors?|counsel|executives?|managers?|faculty|professors?|lecturers?|fellows?|analysts?|secretaries|trainees?|jobs?|vacanc(?:y|ies))\b|\b(?:advocates?|lawyers?|paralegals?|prosecutors?|solicitors?|barristers?)\b|\b(?:judicial services?|civil judges?|district judges?|judicial magistrates?|court (?:assistants?|clerks?|masters?|readers?|typists?|stenographers?|officers?|interpreters?|translators?))\b/i.test(title);
-}
-
-function isRelevantJob(job) {
-  const title = job.title || "";
-  const context = `${job.organisation || ""} ${job.source || ""} ${job.sector || job.type || ""}`;
-  const combined = `${title} ${context}`;
+function hasRelevantJobRole(title = "", context = "") {
+  const text = `${title} ${context}`;
   return (
-    isSpecificLegalJobTitle(title) ||
-    (/\b(?:law|legal|policy)\s+internships?\b|\blegal\s+interns?\b/i.test(combined)) ||
-    (/\b(?:ministry|ministries|government|govt\.?)\b/i.test(combined) &&
-      /\b(?:assistant professors?|professors?|lecturers?|faculty|internships?|interns?|officers?|assistants?|associates?|consultants?|analysts?|managers?|executives?|researchers?|fellows?|teachers?|deans?)\b/i.test(title)) ||
-    (/\b(?:big\s*four|deloitte|pwc|pricewaterhousecoopers|ey|ernst\s*(?:and|&)\s*young|kpmg)\b/i.test(combined) &&
+    LEGAL_JOB_ROLE_REGEX.test(title) ||
+    (/\b(?:law|legal|policy)\b/i.test(text) &&
+      /\binternships?\b|\binterns?\b/i.test(text)) ||
+    (/\b(?:ministry|ministries|government|govt\.?)\b/i.test(text) &&
+      GENERAL_JOB_ROLE_REGEX.test(title)) ||
+    (BIG_FOUR_REGEX.test(text) &&
       /\b(?:legal|law|tax|audit|compliance|risk|forensic|internships?|interns?|consultants?|analysts?|associates?)\b/i.test(title)) ||
-    (/\b(?:government|govt\.?|central|state)\b/i.test(combined) &&
-      /\b(?:college|university|institute)\b/i.test(combined) &&
-      /\b(?:law|legal)\b/i.test(combined) &&
+    (/\b(?:government|govt\.?|central|state)\b/i.test(text) &&
+      /\b(?:college|university|institute)\b/i.test(text) &&
+      /\b(?:law|legal)\b/i.test(text) &&
       /\b(?:assistant professors?|professors?|lecturers?|faculty|deans?)\b/i.test(title))
   );
 }
 
-function compareJobsByVacancyCount(a, b) {
-  const vacanciesA = Number.isInteger(a.vacancyCount) ? a.vacancyCount : 0;
-  const vacanciesB = Number.isInteger(b.vacancyCount) ? b.vacancyCount : 0;
-  return vacanciesB - vacanciesA || new Date(b.posted) - new Date(a.posted);
+function fetchUrl(url) {
+  return new Promise((resolve, reject) => {
+    https
+      .get(
+        url,
+        {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (compatible; PleadlawFeedBot/1.0; +https://pleadlaw.vercel.app)",
+          },
+        },
+        (res) => {
+          if (res.statusCode && res.statusCode >= 400) {
+            reject(new Error(`HTTP ${res.statusCode} for ${url}`));
+            return;
+          }
+          let data = "";
+          res.on("data", (chunk) => (data += chunk));
+          res.on("end", () => resolve(data));
+        }
+      )
+      .on("error", (err) => reject(err));
+  });
 }
 
-function compareJobsByClosingDate(a, b) {
-  const deadlineA = a.lastDate ? Date.parse(a.lastDate) : Infinity;
-  const deadlineB = b.lastDate ? Date.parse(b.lastDate) : Infinity;
-  return deadlineA - deadlineB || compareJobsByVacancyCount(a, b);
+// Minimal, dependency-free <item> extractor for RSS 2.0 feeds.
+// Avoids adding an XML parser package since this is a lightweight script.
+function extractItems(xml) {
+  const items = [];
+  const itemBlocks = xml.match(/<item[\s\S]*?<\/item>/g) || [];
+
+  for (const block of itemBlocks) {
+    items.push({
+      title: extractTag(block, "title"),
+      link: extractTag(block, "link"),
+      pubDate: extractTag(block, "pubDate"),
+      description: extractTag(block, "description"),
+      contentEncoded: extractTag(block, "content:encoded"),
+      image: extractImageUrl(block),
+      guid: extractTag(block, "guid"),
+      sourceUrl: extractAttr(block, "source", "url"),
+      sourceName: extractTag(block, "source"),
+    });
+  }
+
+  return items;
 }
 
-function isPreferredJob(job) {
-  return /\b(?:internships?|interns?|ministry|ministries|government|govt\.?|big\s*four|deloitte|pwc|pricewaterhousecoopers|ey|ernst\s*(?:and|&)\s*young|kpmg)\b/i.test(
-    `${job.title || ""} ${job.organisation || ""} ${job.source || ""} ${job.sector || job.type || ""}`
-  ) || (
-    /\b(?:government|govt\.?|central|state)\b/i.test(
-      `${job.title || ""} ${job.organisation || ""} ${job.source || ""} ${job.sector || job.type || ""}`
-    ) &&
-    /\b(?:college|university|institute)\b/i.test(
-      `${job.title || ""} ${job.organisation || ""} ${job.source || ""} ${job.sector || job.type || ""}`
-    ) &&
-    /\b(?:assistant professors?|professors?|lecturers?|faculty|deans?)\b/i.test(job.title || "")
+function extractImageUrl(block) {
+  const candidates = [
+    block.match(/<(?:media:content|media:thumbnail)\b[^>]*\burl=["']([^"']+)["'][^>]*>/i)?.[1],
+    block.match(/<enclosure\b(?=[^>]*\btype=["']image\/)[^>]*\burl=["']([^"']+)["'][^>]*>/i)?.[1],
+    block.match(/<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/i)?.[1],
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const decoded = decodeHtmlEntities(candidate.trim());
+    const normalized = decoded.startsWith("//") ? `https:${decoded}` : decoded;
+    try {
+      const url = new URL(normalized);
+      if (url.protocol === "https:") return url.href;
+    } catch {
+      continue;
+    }
+  }
+  return "";
+}
+
+function extractTag(block, tagName) {
+  const escaped = tagName.replace(":", "\\:");
+  const regex = new RegExp(
+    `<${escaped}[^>]*>([\\s\\S]*?)<\\/${escaped}>`,
+    "i"
   );
+  const match = block.match(regex);
+  if (!match) return "";
+  return match[1]
+    .replace(/^<!\[CDATA\[/, "")
+    .replace(/\]\]>$/, "")
+    .trim();
+}
+
+function extractAttr(block, tagName, attrName) {
+  const regex = new RegExp(
+    `<${tagName}[^>]*${attrName}="([^"]*)"[^>]*>`,
+    "i"
+  );
+  const match = block.match(regex);
+  return match ? match[1] : "";
+}
+
+function makeId(sourceName, link, pubDate) {
+  const raw = `${sourceName}|${link}|${pubDate}`;
+  let hash = 0;
+  for (let i = 0; i < raw.length; i++) {
+    hash = (hash * 31 + raw.charCodeAt(i)) | 0;
+  }
+  return `item-${Math.abs(hash)}`;
+}
+
+function loadJsonSafe(filePath, fallback) {
+  try {
+    const raw = fs.readFileSync(filePath, "utf8");
+    return JSON.parse(raw);
+  } catch (err) {
+    return fallback;
+  }
+}
+
+function saveJson(filePath, data) {
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + "\n", "utf8");
+}
+
+// Appends new items to an existing pending file, skipping duplicates by id.
+function appendToPending(filePath, newItems) {
+  const existing = loadJsonSafe(filePath, []);
+  const existingIds = new Set(existing.map((it) => it.id));
+
+  const toAdd = newItems.filter((it) => !existingIds.has(it.id));
+
+  const combined = [...existing, ...toAdd];
+  saveJson(filePath, combined);
+
+  return { added: toAdd.length, skipped: newItems.length - toAdd.length };
+}
+
+function loadPublishedJobs() {
+  const parsed = JSON.parse(fs.readFileSync(JOBS_PATH, "utf8"));
+  const jobs = Array.isArray(parsed) ? parsed : parsed?.jobs;
+  if (!Array.isArray(jobs)) {
+    throw new Error(`${JOBS_PATH} must contain an array or an object with a jobs array`);
+  }
+  return jobs;
+}
+
+// ---------- auto-publish logic ----------
+
+// Summaries are plain text by the time they reach this check.
+function isSafeToAutoPublish(item) {
+  return Boolean(item.title && isHttpsUrl(item.link));
+}
+
+// Converts a pending-style news item into the shape used in news.json.
+// news.json uses: id, title, summary, source, url, date, category.
+function toPublishedNewsItem(item) {
+  const summary = item.summary || "";
+  const publishedAt = new Date(item.pubDate);
+  const published = {
+    id: item.id,
+    title: item.title,
+    summary:
+      summary.length > 220 ? summary.slice(0, 217).trimEnd() + "..." : summary,
+    source: item.sourceName,
+    url: item.link,
+    date: Number.isNaN(publishedAt.getTime())
+      ? ""
+      : publishedAt.toISOString().slice(0, 10),
+    category: item.category,
+  };
+  if (item.image) published.image = item.image;
+  return published;
+}
+
+// Auto-publishes qualifying news items straight into news.json.
+// Skips items already published (by id or by url) and items that fail
+// the safety filter (missing fields or leftover HTML entities).
+function autoPublishNews(newItems) {
+  const existing = loadJsonSafe(NEWS_PATH, []);
+  const existingIds = new Set(existing.map((it) => it.id));
+  const existingUrls = new Set(existing.map((it) => it.url));
+
+  let publishedCount = 0;
+  let skippedDuplicate = 0;
+  let skippedUnsafe = 0;
+  let enrichedExisting = false;
+  const existingByUrl = new Map(existing.map((item) => [item.url, item]));
+
+  const toPublish = [];
+
+  for (const item of newItems) {
+    if (existingIds.has(item.id) || existingUrls.has(item.link)) {
+      const existingItem = existingByUrl.get(item.link);
+      if (existingItem && !existingItem.image && item.image) {
+        existingItem.image = item.image;
+        enrichedExisting = true;
+      }
+      skippedDuplicate++;
+      continue;
+    }
+    if (!isSafeToAutoPublish(item)) {
+      skippedUnsafe++;
+      console.warn(
+        `[fetch-feeds] Skipped auto-publish (unsafe/incomplete): "${item.title || "(no title)"}" from ${item.sourceName}`
+      );
+      continue;
+    }
+    toPublish.push(toPublishedNewsItem(item));
+    existingIds.add(item.id);
+    existingUrls.add(item.link);
+    publishedCount++;
+  }
+
+  const seenIds = new Set();
+  const seenUrls = new Set();
+  const uniqueItems = [...existing, ...toPublish].filter((item) => {
+    if (
+      (item.id && seenIds.has(item.id)) ||
+      (item.url && seenUrls.has(item.url))
+    ) {
+      return false;
+    }
+    if (item.id) seenIds.add(item.id);
+    if (item.url) seenUrls.add(item.url);
+    return true;
+  });
+  uniqueItems.sort((a, b) => {
+    const dateA = Date.parse(a.date || "");
+    const dateB = Date.parse(b.date || "");
+    return (Number.isNaN(dateB) ? 0 : dateB) - (Number.isNaN(dateA) ? 0 : dateA);
+  });
+
+  const sourceCounts = new Map();
+  const balancedItems = uniqueItems.filter((item) => {
+    const source = item.source || "Unknown";
+    const count = sourceCounts.get(source) || 0;
+    if (count >= MAX_PUBLISHED_NEWS_PER_SOURCE) return false;
+    sourceCounts.set(source, count + 1);
+    return true;
+  });
+
+  if (balancedItems.length !== existing.length || toPublish.length > 0 || enrichedExisting) {
+    saveJson(NEWS_PATH, balancedItems);
+  }
+
+  console.log(
+    `[fetch-feeds] news.json auto-publish: +${publishedCount} published, ${skippedDuplicate} duplicate(s) skipped, ${skippedUnsafe} unsafe/incomplete skipped, capped at ${MAX_PUBLISHED_NEWS_PER_SOURCE} per source`
+  );
+}
+
+function toPublishedJob(item) {
+  const posted = new Date(item.pubDate);
+  const description = getJobDescription(item);
+  const details = `${item.title} ${item.summary}`;
+  const published = {
+    id: item.id,
+    title: item.title,
+    organisation: item.organisation || "",
+    type: item.jobType || item.sector,
+    sector: item.sector,
+    vacancyCount: extractVacancyCount(details),
+    location: item.location || "",
+    description,
+    posted: Number.isNaN(posted.getTime()) ? "" : posted.toISOString(),
+    lastDate: extractApplicationDeadline(details, item.pubDate),
+    url: item.link,
+    verified: false,
+    autoCollected: true,
+    source: item.sourceName,
+    sourceUrl: item.sourceUrl || "",
+  };
+  if (isHttpsUrl(item.image || "")) published.image = item.image;
+  return published;
+}
+
+function getJobDescription(item) {
+  let description = (item.summary || "").trim();
+  for (const boilerplate of [item.title, item.sourceName]) {
+    if (boilerplate) {
+      description = description
+        .replace(new RegExp(escapeRegExp(boilerplate), "ig"), " ")
+        .trim();
+    }
+  }
+  description = description.replace(/^[\s:—|·-]+|[\s:—|·-]+$/g, "").trim();
+  return description.length > 450
+    ? `${description.slice(0, 447).trimEnd()}...`
+    : description;
+}
+
+function getJobText(item) {
+  return `${item.title} ${getJobDescription(item)} ${
+    item.organisation || ""
+  } ${item.jobType || ""} ${item.sourceName || ""}`;
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function extractVacancyCount(text) {
+  const number = "(\\d{1,3}(?:,\\d{3})+|\\d{1,4})";
+  const match = text.match(
+    new RegExp(
+      `\\b${number}\\s+(?:vacanc(?:y|ies)|posts?|positions?|openings?|seats?)\\b|\\b(?:vacanc(?:y|ies)|posts?|positions?|openings?|seats?)\\s*[:=-]\\s*${number}\\b`,
+      "i"
+    )
+  );
+  const count = match ? Number((match[1] || match[2]).replace(/,/g, "")) : 0;
+  return count > 0 ? count : null;
 }
 
 function jobTitleTokens(title) {
@@ -208,1374 +498,378 @@ function jobTitleTokens(title) {
   );
 }
 
-function deduplicateJobs(jobs, { preferPreferred = true } = {}) {
+function areDuplicateJobListings(a, b) {
+  const tokensA = jobTitleTokens(a.title);
+  const tokensB = jobTitleTokens(b.title);
+  const shared = [...tokensA].filter((token) => tokensB.has(token)).length;
+  const combinedLength = tokensA.size + tokensB.size - shared;
+  if (shared < 3 || combinedLength === 0 || shared / combinedLength < 0.55) {
+    return false;
+  }
+
+  const employerA = jobTitleTokens(a.organisation);
+  const employerB = jobTitleTokens(b.organisation);
+  if (employerA.size && employerB.size) {
+    const sharedEmployers = [...employerA].filter((token) =>
+      employerB.has(token)
+    ).length;
+    const smallerEmployerSize = Math.min(employerA.size, employerB.size);
+    if (sharedEmployers / smallerEmployerSize < 0.6) return false;
+  }
+
+  return true;
+}
+
+function deduplicateJobListings(jobs) {
   const selected = [];
-  const ordered = preferPreferred
-    ? [...jobs].sort((a, b) =>
-        Number(isPreferredJob(b)) - Number(isPreferredJob(a)) ||
-        compareJobsByVacancyCount(a, b)
-      )
-    : jobs;
-  for (const job of ordered) {
+  const sorted = [...jobs].sort((a, b) => {
+    const countA = Number.isInteger(a.vacancyCount) ? a.vacancyCount : 0;
+    const countB = Number.isInteger(b.vacancyCount) ? b.vacancyCount : 0;
+    return countB - countA || Date.parse(b.posted || "") - Date.parse(a.posted || "");
+  });
+
+  for (const job of sorted) {
     if (
       Number.isInteger(job.vacancyCount) &&
       (job.vacancyCount <= 0 || job.vacancyCount > MAX_JOB_VACANCIES)
     ) {
       continue;
     }
-    const tokens = jobTitleTokens(job.title);
-    const duplicate = selected.some((existing) => {
-      const employerTokens = jobTitleTokens(job.organisation);
-      const existingEmployerTokens = jobTitleTokens(existing.organisation);
-      if (employerTokens.size && existingEmployerTokens.size) {
-        const sharedEmployers = [...employerTokens].filter((token) =>
-          existingEmployerTokens.has(token)
-        ).length;
-        const smallerEmployerSize = Math.min(
-          employerTokens.size,
-          existingEmployerTokens.size
-        );
-        if (sharedEmployers / smallerEmployerSize < 0.6) return false;
-      }
-
-      const existingTokens = jobTitleTokens(existing.title);
-      const shared = [...tokens].filter((token) => existingTokens.has(token)).length;
-      const combinedLength = tokens.size + existingTokens.size - shared;
-      return shared >= 3 && combinedLength > 0 && shared / combinedLength >= 0.55;
-    });
-    if (!duplicate) {
-      selected.push(job);
+    const duplicate = selected.find((existing) =>
+      areDuplicateJobListings(existing, job)
+    );
+    if (duplicate) {
+      if (!duplicate.image && job.image) duplicate.image = job.image;
+      continue;
     }
+    selected.push(job);
   }
   return selected;
 }
 
-function selectJobResults(jobs) {
-  const preferred = jobs.filter(isPreferredJob).sort(compareJobsByVacancyCount);
-  const other = jobs.filter((job) => !isPreferredJob(job)).sort(compareJobsByVacancyCount);
-  return [
-    ...preferred.slice(0, MIN_PREFERRED_JOB_RESULTS),
-    ...other,
-    ...preferred.slice(MIN_PREFERRED_JOB_RESULTS),
-  ].slice(0, MAX_JOB_RESULTS).sort(compareJobsByVacancyCount);
+function isPastDeadline(lastDate, now = Date.now()) {
+  const deadline = Date.parse(lastDate || "");
+  return !Number.isNaN(deadline) && now > deadline + 24 * 60 * 60 * 1000;
 }
 
-function hasJobSource(job) {
+async function resolvePublisherUrl(link) {
+  let host;
   try {
-    return Boolean(job.url) && new URL(job.url).protocol === "https:";
+    host = new URL(link).hostname;
+  } catch {
+    return link;
+  }
+  if (!host.endsWith("news.google.com")) return link;
+  try {
+    const response = await fetch(link, {
+      redirect: "follow",
+      signal: AbortSignal.timeout(8000),
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; PleadlawBot/1.0)" },
+    });
+    await response.body?.cancel();
+    const finalHost = new URL(response.url).hostname;
+    return finalHost.endsWith("news.google.com") ? link : response.url;
+  } catch {
+    return link;
+  }
+}
+
+function extractApplicationDeadline(text, pubDate) {
+  const datePattern =
+    "(?:\\d{1,2}(?:st|nd|rd|th)?\\s+[A-Za-z]{3,9}\\.?[,]?(?:\\s+\\d{4})?|[A-Za-z]{3,9}\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?[,]?(?:\\s+\\d{4})?|\\d{1,2}[/-]\\d{1,2}[/-]\\d{4}|\\d{4}-\\d{2}-\\d{2})";
+  const match = text.match(
+    new RegExp(
+      `\\b(?:last date(?: to apply| for (?:submission|application))?|application deadline|deadline|closing date|apply\\s+(?:by|before|till|until))\\s*(?:is|:|-)?\\s*(${datePattern})`,
+      "i"
+    )
+  );
+  if (!match) return "";
+
+  let dateText = match[1].replace(/(\d)(st|nd|rd|th)\b/gi, "$1");
+  const numericDate = dateText.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  let date;
+  if (numericDate) {
+    const [, day, month, year] = numericDate;
+    date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+    if (
+      date.getUTCFullYear() !== Number(year) ||
+      date.getUTCMonth() !== Number(month) - 1 ||
+      date.getUTCDate() !== Number(day)
+    ) {
+      return "";
+    }
+  } else {
+    const isoDate = dateText.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoDate) {
+      const [, year, month, day] = isoDate;
+      date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+      if (
+        date.getUTCFullYear() !== Number(year) ||
+        date.getUTCMonth() !== Number(month) - 1 ||
+        date.getUTCDate() !== Number(day)
+      ) {
+        return "";
+      }
+      return date.toISOString().slice(0, 10);
+    }
+    if (!/\b\d{4}\b/.test(dateText)) {
+      const referenceDate = new Date(pubDate);
+      if (Number.isNaN(referenceDate.getTime())) return "";
+      dateText = `${dateText} ${referenceDate.getUTCFullYear()}`;
+    }
+    date = new Date(dateText);
+  }
+
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+}
+
+function autoPublishJobListings(items) {
+  const existing = loadPublishedJobs();
+  const now = Date.now();
+  const currentJobs = existing.filter(
+    (job) =>
+      !job.autoCollected ||
+      (
+        Boolean(getRecentJobDate(job.posted, now)) &&
+        !isPastDeadline(job.lastDate, now) &&
+        hasRelevantJobRole(
+          job.title || "",
+          `${job.organisation || ""} ${job.sector || job.type || ""}`
+        ) &&
+        (job.vacancyCount == null ||
+          (Number.isInteger(job.vacancyCount) &&
+            job.vacancyCount > 0 &&
+            job.vacancyCount <= MAX_JOB_VACANCIES))
+      )
+  );
+  const existingIds = new Set(currentJobs.map((job) => job.id));
+  const existingUrls = new Set(
+    currentJobs.map((job) => job.url).filter(Boolean)
+  );
+  const existingById = new Map(currentJobs.map((job) => [job.id, job]));
+  const existingByUrl = new Map(currentJobs.map((job) => [job.url, job]));
+  const toPublish = [];
+  let skippedDuplicate = 0;
+  let skippedUnsafe = 0;
+  let enrichedExisting = false;
+
+  for (const item of items) {
+    if (existingIds.has(item.id) || existingUrls.has(item.link)) {
+      const existingJob =
+        existingByUrl.get(item.link) || existingById.get(item.id);
+      if (existingJob && !existingJob.image && isHttpsUrl(item.image || "")) {
+        existingJob.image = item.image;
+        enrichedExisting = true;
+      }
+      skippedDuplicate++;
+      continue;
+    }
+    if (!isSafeToAutoPublish(item) || !isEligibleJobAnnouncement(item, now)) {
+      skippedUnsafe++;
+      console.warn(
+        `[fetch-feeds] Skipped job (unsafe/ineligible): "${item.title || "(no title)"}" from ${item.sourceName}`
+      );
+      continue;
+    }
+    toPublish.push(toPublishedJob(item));
+    existingIds.add(item.id);
+    existingUrls.add(item.link);
+  }
+
+  const combinedJobs = [...currentJobs, ...toPublish];
+  const deduplicatedJobs = deduplicateJobListings(combinedJobs);
+
+  if (
+    toPublish.length > 0 ||
+    currentJobs.length !== existing.length ||
+    deduplicatedJobs.length !== combinedJobs.length ||
+    enrichedExisting
+  ) {
+    saveJson(JOBS_PATH, { jobs: deduplicatedJobs });
+  }
+
+  console.log(
+    `[fetch-feeds] jobs.json auto-publish: +${toPublish.length} auto-collected, ${skippedDuplicate} URL/ID duplicate(s) skipped, ${combinedJobs.length - deduplicatedJobs.length} syndicated duplicate(s) removed, ${skippedUnsafe} unsafe/ineligible skipped, auto-collected listings limited to ${JOB_MAX_AGE_DAYS} days`
+  );
+}
+
+function isHttpsUrl(value) {
+  try {
+    return new URL(value).protocol === "https:";
   } catch {
     return false;
   }
 }
 
-function diversifyBySource(items) {
-  const sources = new Map();
-  for (const item of items) {
-    const source = item.source || "Unknown";
-    if (!sources.has(source)) sources.set(source, []);
-    sources.get(source).push(item);
+// ---------- core fetch logic ----------
+
+async function fetchAndParse(source) {
+  let xml;
+  try {
+    xml = await fetchUrl(source.url);
+  } catch (err) {
+    console.error(`[fetch-feeds] FAILED: ${source.name} (${source.url})`);
+    console.error(`  Reason: ${err.message}`);
+    return [];
   }
 
-  const diversified = [];
-  let hasItems = true;
-  while (hasItems) {
-    hasItems = false;
-    for (const sourceItems of sources.values()) {
-      const item = sourceItems.shift();
-      if (item) {
-        diversified.push(item);
-        hasItems = true;
-      }
-    }
-  }
-  return diversified;
-}
+  const rawItems = extractItems(xml);
 
-/* ---------- HOME ---------- */
+  const items = rawItems.map((raw) => {
+    const summaryHtml = source.useContentEncoded
+      ? raw.contentEncoded || raw.description
+      : raw.description;
 
-export function Home() {
-  useDocumentMeta(
-    "Pleadlaw | Legal resources and Startup Guide",
-    "Explore Indian legal news, curated law jobs, a practical Startup Guide, guided document drafting and consultation support.",
-    "/"
-  );
-  const { data: news } = useJson("/news.json");
-  const { data: jobs } = useJson("/jobs.json");
-
-  const latestNews = diversifyBySource([...news]
-    .filter((item) => item.image)
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-  ).slice(0, 3);
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const openJobs = deduplicateJobs(jobs
-    .filter(
-      (j) =>
-        isRecentJob(j.posted) &&
-        (!j.autoCollected || isRelevantJob(j)) &&
-        hasJobSource(j) &&
-        (j.sector || j.type) &&
-        (!Number.isInteger(j.vacancyCount) ||
-          (j.vacancyCount > 0 && j.vacancyCount <= MAX_JOB_VACANCIES)) &&
-        (!j.lastDate || new Date(j.lastDate) >= today)
-    )
-    .sort(compareJobsByVacancyCount),
-    { preferPreferred: false }
-  ).slice(0, 3);
-
-  return (
-    <>
-      <section className="hero-glow relative isolate overflow-hidden text-white">
-        <div className="absolute -right-24 top-10 -z-10 h-80 w-80 rounded-full border border-white/10 bg-white/[0.03] blur-[1px]" />
-        <div className="absolute right-24 top-28 -z-10 h-40 w-40 rounded-full border border-cyan-200/20" />
-        <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 md:grid-cols-[1.1fr_0.9fr] md:px-6 md:py-28">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_12px_#67e8f9]" />
-              Next-generation legal services
-            </span>
-            <h1 className="mt-6 max-w-2xl text-5xl font-extrabold leading-[1.05] tracking-tight md:text-7xl">
-              AI Drafting, Careers &amp;
-              <span className="block bg-gradient-to-r from-cyan-200 via-violet-200 to-white bg-clip-text text-transparent">
-                Startup Guidance Made Easier
-              </span>
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-indigo-100/85">
-              Create a Preliminary Document Draft With Guided Questions, Explore Indian Legal News, Curated Legal Jobs or a Practical Startup Guide
-            </p>
-            <div className="mt-9 flex flex-wrap gap-3">
-              <Link
-                to="/consultation"
-                className="rounded-xl bg-white px-5 py-3 font-semibold text-slate-900 shadow-lg shadow-black/15 transition hover:-translate-y-0.5 hover:bg-cyan-50"
-              >
-                Talk to our team
-              </Link>
-              <Link
-                to="/drafter"
-                className="rounded-xl border border-white/25 bg-white/[0.06] px-5 py-3 font-semibold text-white transition hover:bg-white/15"
-              >
-                Explore AI drafting
-              </Link>
-            </div>
-            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-indigo-100/70">
-              <span>AI-assisted drafting</span>
-              <span>·</span>
-              <span>Indian law news</span>
-              <span>·</span>
-              <span>Career resources</span>
-            </div>
-          </div>
-          <Link
-            to="/drafter"
-            className="group relative mx-auto block w-full max-w-md rounded-3xl border border-white/15 bg-white/[0.08] p-5 shadow-2xl shadow-black/25 backdrop-blur-xl transition hover:-translate-y-1"
-          >
-            <div className="rounded-2xl bg-gradient-to-br from-white to-indigo-50 p-6 text-slate-900">
-              <div className="flex items-center justify-between">
-                <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-violet-800">
-                  AI Draft Studio
-                </span>
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-lg text-white">✦</span>
-              </div>
-              <div className="mt-7 space-y-3">
-                <div className="h-2.5 w-3/4 rounded-full bg-slate-200" />
-                <div className="h-2 w-full rounded-full bg-slate-100" />
-                <div className="h-2 w-5/6 rounded-full bg-slate-100" />
-                <div className="mt-5 rounded-xl border border-violet-100 bg-violet-50/80 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">Structured. Clear. Reviewed.</p>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                    Build a preliminary document draft with guided questions for your document type.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-between px-1 pt-4 text-sm text-white/85">
-              <span>Start a guided draft</span>
-              <span className="transition group-hover:translate-x-1">→</span>
-            </div>
-          </Link>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-16">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-600">Stay informed</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Latest law news</h2>
-          </div>
-          <Link to="/news" className="text-sm font-semibold text-brand-700 hover:text-brand-500">
-            View all →
-          </Link>
-        </div>
-        {latestNews.length === 0 ? (
-          <p className="text-slate-500">Photo news will appear here when publishers provide images.</p>
-        ) : (
-          <div className="grid gap-5 md:grid-cols-3">
-            {latestNews.map((n) => (
-              <NewsCard key={n.id} item={n} requireImage />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 pb-16 md:px-6">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-600">Build your future</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Latest law jobs</h2>
-          </div>
-          <Link to="/jobs" className="text-sm font-semibold text-brand-700 hover:text-brand-500">
-            View all →
-          </Link>
-        </div>
-        <p className="mb-4 text-sm text-slate-500">
-          Recent Indian legal job and internship listings posted within the last {JOB_MAX_AGE_DAYS} days.
-        </p>
-        {openJobs.length === 0 ? (
-          <p className="text-slate-500">
-            No recent announcements with a usable source link and identifiable sector yet.
-          </p>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-3">
-            {openJobs.map((j) => (
-              <JobCard key={j.id} job={j} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-16">
-        <div className="mb-6 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-600">The people behind Pleadlaw</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Meet our team</h2>
-          </div>
-          <Link to="/team" className="shrink-0 text-sm font-semibold text-brand-700 hover:text-brand-500">
-            Full profiles →
-          </Link>
-        </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {teamMembers.map((member) => (
-            <Link
-              key={member.name}
-              to="/team"
-              className="surface-card group overflow-hidden rounded-2xl"
-            >
-              <div className="aspect-[4/5] w-full overflow-hidden bg-slate-100">
-                <img
-                  src={member.image}
-                  alt={`${member.name}, ${member.role}`}
-                  loading="lazy"
-                  style={{ objectPosition: member.imagePosition || "center top" }}
-                  className={`h-full w-full object-cover transition duration-300 ${member.imageScale || "group-hover:scale-[1.02]"}`}
-                />
-              </div>
-              <div className="p-5">
-                <h3 className="font-bold text-slate-900">{member.name}</h3>
-                <p className="mt-1 text-sm font-medium text-violet-800">{member.role}</p>
-                <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-slate-600">{member.bio}</p>
-                <span className="mt-4 inline-block text-sm font-semibold text-brand-700">Read profile →</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-    </>
-  );
-}
-
-/* ---------- NEWS ---------- */
-
-function NewsArtwork({ item, onImageError }) {
-  const [imageFailed, setImageFailed] = useState(false);
-
-  return (
-    <div className="news-art relative aspect-[16/9] overflow-hidden">
-      {item.image && !imageFailed ? (
-        <img
-          src={item.image}
-          alt=""
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          onError={() => {
-            setImageFailed(true);
-            onImageError?.();
-          }}
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
-        />
-      ) : (
-        <div className="absolute inset-0 flex flex-col justify-between p-5 text-white">
-          <span className="w-fit rounded-full border border-white/25 bg-slate-950/20 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white/90 backdrop-blur">
-            {item.category || "Legal update"}
-          </span>
-          <div>
-            <div className="mb-2 h-px w-12 bg-cyan-200/80" />
-            <p className="max-w-xs text-lg font-semibold leading-snug text-white/95">Law, policy &amp; justice</p>
-          </div>
-          <span className="absolute right-5 top-3 text-7xl font-black text-white/[0.12]">§</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function NewsCard({ item, requireImage = false }) {
-  const [imageFailed, setImageFailed] = useState(false);
-  if (requireImage && (!item.image || imageFailed)) return null;
-
-  return (
-    <article className="surface-card group overflow-hidden rounded-2xl">
-      <NewsArtwork item={item} onImageError={() => setImageFailed(true)} />
-      <div className="p-5">
-        <div className="mb-3 flex items-center justify-between gap-2 text-xs text-slate-500">
-          <span className="rounded-full bg-violet-50 px-2.5 py-1 font-semibold text-brand-700">
-            {item.category || "Legal news"}
-          </span>
-          <span>Published {formatDate(item.date)}</span>
-        </div>
-        <h3 className="line-clamp-3 font-bold leading-snug text-slate-900">{item.title}</h3>
-        {item.summary && <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-600">{item.summary}</p>}
-        <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-100 pt-4 text-xs">
-          <span className="truncate text-slate-500">Source: {item.source || "Original publisher"}</span>
-          <a
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 font-semibold text-brand-700 hover:text-brand-500"
-          >
-            Original source →
-          </a>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-export function News() {
-  const { data, loading, error } = useJson("/news.json");
-  const [category, setCategory] = useState("All");
-  const [query, setQuery] = useState("");
-  useDocumentMeta(
-    "Indian legal news | Pleadlaw",
-    "Latest developments in Indian law, linked to original publisher sources.",
-    "/news"
-  );
-
-  const categories = ["All", ...new Set(data.map((n) => n.category).filter(Boolean))];
-
-  const items = diversifyBySource(data
-    .filter((n) => category === "All" || n.category === category)
-    .filter((n) =>
-      `${n.title} ${n.summary || ""}`.toLowerCase().includes(query.toLowerCase())
-    )
-    .sort((a, b) => new Date(b.date) - new Date(a.date)));
-
-  return (
-    <section className="mx-auto max-w-7xl px-4 py-12 md:px-6">
-      <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-900 px-6 py-10 text-white md:px-10">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-200">Pleadlaw briefing</p>
-        <h1 className="mt-3 text-4xl font-extrabold tracking-tight md:text-5xl">Legal news, clearly.</h1>
-        <p className="mt-3 max-w-2xl leading-relaxed text-indigo-100/80">
-        Latest developments in Indian law, linked to the original sources.
-        </p>
-      </div>
-
-      <label htmlFor="news-search" className="sr-only">Search news</label>
-      <input
-        id="news-search"
-        type="text"
-        placeholder="Search news..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="mt-6 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
-      />
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        {categories.map((c) => (
-          <button
-            key={c}
-            aria-pressed={category === c}
-            onClick={() => setCategory(c)}
-            className={`rounded-full border px-3 py-1 text-sm ${
-              category === c ? "bg-brand-600 text-white" : "bg-white"
-            }`}
-          >
-            {c}
-          </button>
-        ))}
-      </div>
-
-      {loading && <p className="mt-6">Loading...</p>}
-      {error && (
-        <p className="mt-6 text-red-600">Could not load news. Please try again later.</p>
-      )}
-      {!loading && !error && items.length === 0 && (
-        <p className="mt-6 text-slate-500">No news items yet. Please check back soon.</p>
-      )}
-
-      <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {items.map((n) => (
-          <NewsCard key={n.id} item={n} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ---------- JOBS ---------- */
-
-function JobArtwork({ job }) {
-  const [imageFailed, setImageFailed] = useState(false);
-
-  const artwork = (
-    <div className="news-art relative -mx-4 -mt-4 mb-4 aspect-[16/9] overflow-hidden">
-      {job.image && !imageFailed && (
-        <img
-          src={job.image}
-          alt=""
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          onError={() => setImageFailed(true)}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      )}
-      <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-indigo-950/75 to-violet-900/45" />
-      <div className="absolute inset-0 flex flex-col justify-between p-5 text-white">
-        <span className="w-fit rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-100 backdrop-blur">
-          Legal career opportunity
-        </span>
-        <div className="flex items-end justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium text-indigo-100/80">
-              {job.sector || job.type || "Career opening"}
-            </p>
-            <p className="mt-1 text-xl font-bold leading-tight">
-              {Number.isInteger(job.vacancyCount)
-                ? `${job.vacancyCount.toLocaleString("en-IN")} openings`
-                : "Your next opportunity"}
-            </p>
-          </div>
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/10 text-lg transition group-hover:translate-x-1 group-hover:bg-white/20">
-            →
-          </span>
-        </div>
-      </div>
-      {!job.image && (
-        <span className="pointer-events-none absolute right-5 top-10 text-8xl font-black leading-none text-white/[0.08]">
-          §
-        </span>
-      )}
-    </div>
-  );
-
-  if (!job.url) return artwork;
-
-  return (
-    <a
-      href={job.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={`View opportunity: ${job.title}`}
-      className="block rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
-    >
-      {artwork}
-    </a>
-  );
-}
-
-function JobCard({ job }) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const closed = job.lastDate && new Date(job.lastDate) < today;
-
-  return (
-    <article className={`surface-card group overflow-hidden rounded-2xl p-4 ${closed ? "opacity-60" : ""}`}>
-      <JobArtwork job={job} />
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="line-clamp-2 font-bold leading-snug text-slate-900">{job.title}</h3>
-        {closed ? (
-          <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">Closed</span>
-        ) : !job.autoCollected && job.verified === false ? (
-          <span className="shrink-0 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
-            Unverified
-          </span>
-        ) : null}
-      </div>
-      {job.organisation && (
-        <p className="mt-2 line-clamp-1 text-sm text-slate-600">{job.organisation}</p>
-      )}
-      <p className="mt-3 flex flex-wrap gap-1.5 text-xs font-semibold text-brand-700">
-        <span className="rounded-lg bg-slate-50 px-2.5 py-1.5">
-          {job.sector || job.type || "Legal opportunity"}
-        </span>
-        {Number.isInteger(job.vacancyCount) && (
-          <span className="rounded-lg bg-slate-50 px-2.5 py-1.5">
-            Vacancies: {job.vacancyCount.toLocaleString("en-IN")}
-          </span>
-        )}
-      </p>
-      {job.location && (
-        <p className="mt-2 line-clamp-1 text-xs text-slate-500">{job.location}</p>
-      )}
-      {job.description && (
-        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-slate-600">
-          {job.description}
-        </p>
-      )}
-      <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3 text-xs">
-        <div className="text-slate-500">
-          {job.posted && <p>Posted on {formatDate(job.posted)}</p>}
-          {job.lastDate && <p>Apply by {formatDate(job.lastDate)}</p>}
-        </div>
-        {job.url ? (
-          <a
-            href={job.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-brand-700 hover:text-brand-500"
-          >
-            {job.autoCollected ? "Source article →" : "Official notice →"}
-          </a>
-        ) : (
-          <span className="text-slate-400">Source link unavailable</span>
-        )}
-      </div>
-      <p className="mt-3 text-[11px] text-slate-400">
-        Confirm the vacancy and application details with the employer before applying.
-      </p>
-    </article>
-  );
-}
-
-export function Jobs() {
-  const { data, loading, error } = useJson("/jobs.json");
-  const [type, setType] = useState("All");
-  const [query, setQuery] = useState("");
-  const [sortBy, setSortBy] = useState("vacancies");
-  useDocumentMeta(
-    "Law jobs in India | Pleadlaw",
-    "Recent Indian legal jobs and internships with vacancy counts and deadlines, updated from verified sources.",
-    "/jobs"
-  );
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const recentJobs = deduplicateJobs(data.filter(
-    (job) =>
-      isRecentJob(job.posted) &&
-      (!job.lastDate || new Date(job.lastDate) >= today) &&
-      (!job.autoCollected || isRelevantJob(job)) &&
-      hasJobSource(job) &&
-      (job.sector || job.type) &&
-      (!Number.isInteger(job.vacancyCount) ||
-        (job.vacancyCount > 0 && job.vacancyCount <= MAX_JOB_VACANCIES))
-  ));
-  const types = [
-    "All",
-    ...new Set(recentJobs.map((j) => j.sector || j.type).filter(Boolean)),
-  ];
-
-  const filteredJobs = recentJobs
-    .filter((j) => type === "All" || (j.sector || j.type) === type)
-    .filter((j) =>
-      `${j.title} ${j.organisation || ""} ${j.location || ""}`
-        .toLowerCase()
-        .includes(query.toLowerCase())
-    );
-  const items = (type === "All" && !query && sortBy === "vacancies"
-    ? selectJobResults(filteredJobs)
-    : [...filteredJobs]
-        .sort(sortBy === "closing" ? compareJobsByClosingDate : compareJobsByVacancyCount)
-        .slice(0, MAX_JOB_RESULTS));
-
-  return (
-    <section className="mx-auto max-w-7xl px-4 py-12 md:px-6">
-      <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-900 px-6 py-10 text-white md:px-10">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-200">Career opportunities</p>
-        <h1 className="mt-3 text-4xl font-extrabold tracking-tight md:text-5xl">Law jobs in India</h1>
-        <p className="mt-3 max-w-3xl leading-relaxed text-indigo-100/80">
-        Indian legal jobs and internships posted within the last {JOB_MAX_AGE_DAYS} days.
-        Showing up to {MAX_JOB_RESULTS} results, including at least {MIN_PREFERRED_JOB_RESULTS} opportunities
-        from internships, ministries, Big Four firms, and government law colleges when available.
-        Postings with a vacancy count above {MAX_JOB_VACANCIES} are excluded.
-        Postings past their deadline are hidden.
-        Vacancy counts and deadlines appear only
-        when stated in the source. Confirm details with the employer before applying.
-        </p>
-      </div>
-
-      <label htmlFor="job-search" className="sr-only">Search jobs</label>
-      <input
-        id="job-search"
-        type="text"
-        placeholder="Search by post, organisation or location..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="mt-6 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
-      />
-
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        {types.map((t) => (
-          <button
-            key={t}
-            aria-pressed={type === t}
-            onClick={() => setType(t)}
-            className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
-              type === t ? "border-brand-600 bg-brand-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-violet-300"
-            }`}
-          >
-            {t}
-          </button>
-        ))}
-        <label htmlFor="job-sort" className="ml-auto text-sm text-slate-600">
-          Sort by{" "}
-          <select
-            id="job-sort"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="rounded-lg border border-slate-200 bg-white px-2 py-1"
-          >
-            <option value="vacancies">Most vacancies</option>
-            <option value="closing">Closing soon</option>
-          </select>
-        </label>
-      </div>
-      {!loading && !error && (
-        <p className="mt-3 text-sm text-slate-500" aria-live="polite">
-          Showing {items.length} {items.length === 1 ? "opportunity" : "opportunities"}
-        </p>
-      )}
-
-      {loading && <p className="mt-6">Loading...</p>}
-      {error && (
-        <p className="mt-6 text-red-600">Could not load jobs. Please try again later.</p>
-      )}
-      {!loading && !error && items.length === 0 && (
-        <p className="mt-6 text-slate-500">
-          No recent announcements with a usable source link and identifiable sector yet.
-        </p>
-      )}
-
-      <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {items.map((j) => (
-          <JobCard key={j.id} job={j} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ---------- KNOW YOUR LAW ---------- */
-
-export function KnowYourLaw() {
-  const [query, setQuery] = useState("");
-  useDocumentMeta(
-    "Know your law | Pleadlaw",
-    "Plain-language explainers on FIRs, tenant rights, cheque bounce, consumer complaints and the RTI Act.",
-    "/know-your-law"
-  );
-  const matches = explainers.filter((e) =>
-    `${e.title} ${e.summary}`.toLowerCase().includes(query.toLowerCase())
-  );
-  return (
-    <section className="mx-auto max-w-7xl px-4 py-12 md:px-6">
-      <div className="mb-8 rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-900 px-6 py-10 text-white md:px-10">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-200">Legal essentials</p>
-        <h1 className="mt-3 text-4xl font-extrabold tracking-tight md:text-5xl">Know your law</h1>
-        <p className="mt-3 text-indigo-100/80">Plain-language explainers on Indian law. General information only, not legal advice.</p>
-      </div>
-      <label htmlFor="explainer-search" className="sr-only">Search explainers</label>
-      <input
-        id="explainer-search"
-        type="text"
-        placeholder="Search explainers..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="mb-6 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
-      />
-      {matches.length === 0 && <p className="text-slate-500">No explainers match your search.</p>}
-      <div className="grid gap-5 md:grid-cols-2">
-        {matches.map((e) => (
-          <article key={e.slug} className="surface-card rounded-2xl p-6">
-            <span className="text-xs font-bold uppercase tracking-[0.18em] text-brand-600">Plain-language guide</span>
-            <h2 className="mt-3 text-lg font-bold text-slate-900">
-              <Link to={`/know-your-law/${e.slug}`} className="hover:text-brand-600">{e.title}</Link>
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">{e.summary}</p>
-            <Link to={`/know-your-law/${e.slug}`} className="mt-5 inline-block text-sm font-semibold text-brand-700 hover:text-brand-500">
-              Read the guide →
-            </Link>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-export function KnowYourLawDetail() {
-  const { slug } = useParams();
-  const explainer = explainers.find((e) => e.slug === slug);
-  useDocumentMeta(
-    explainer ? `${explainer.title} | Pleadlaw` : "Guide not found | Pleadlaw",
-    explainer ? explainer.summary : "This guide could not be found.",
-    `/know-your-law/${slug}`
-  );
-  if (!explainer) {
-    return (
-      <section className="mx-auto max-w-3xl px-4 py-12">
-        <h1 className="text-3xl font-bold">Guide not found</h1>
-        <Link to="/know-your-law" className="mt-4 inline-block font-semibold text-brand-700">← Back to Know your law</Link>
-      </section>
-    );
-  }
-  return (
-    <article className="mx-auto max-w-3xl px-4 py-12">
-      <Link to="/know-your-law" className="text-sm font-semibold text-brand-700 hover:text-brand-500">← Know your law</Link>
-      <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900">{explainer.title}</h1>
-      <p className="mt-3 text-slate-600">{explainer.summary}</p>
-      <div className="mt-6 space-y-4 leading-relaxed text-slate-700">
-        {explainer.body.map((paragraph) => (
-          <p key={paragraph.slice(0, 40)}>{paragraph}</p>
-        ))}
-      </div>
-      <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-        This guide is general information only and does not replace advice from a qualified advocate. Laws and fees change, so check the current position before acting.
-      </p>
-      <div className="mt-8 flex flex-wrap gap-3">
-        <Link to="/consultation" className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white">Book a consultation</Link>
-        <Link to="/drafter" className="rounded-lg border px-4 py-2 text-sm font-semibold">Draft a document</Link>
-      </div>
-    </article>
-  );
-}
-
-/* ---------- CONSULTATION ---------- */
-
-export function Consultation() {
-  const [agreed, setAgreed] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState("");
-  const [submitError, setSubmitError] = useState("");
-  useDocumentMeta(
-    "Book a legal consultation | Pleadlaw",
-    "Request a consultation on career, CV, legal research or drafting. Submitting a form does not create an advocate-client relationship.",
-    "/consultation"
-  );
-  useEffect(() => {
-    if (!TURNSTILE_SITE_KEY || document.getElementById("cf-turnstile-script")) return;
-    const script = document.createElement("script");
-    script.id = "cf-turnstile-script";
-    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
-  }, []);
-  const [form, setForm] = useState({
-    name: "",
-    region: "",
-    mobile: "",
-    email: "",
-    serviceType: "Legal Consultation",
-    query: "",
-    commPref: "Email",
-    website: "",
+    const summary = stripHtml(summaryHtml);
+    const item = {
+      id: makeId(source.name, raw.link, raw.pubDate),
+      title: stripHtml(raw.title),
+      link: raw.link,
+      pubDate: raw.pubDate,
+      summary,
+      image: raw.image,
+      sourceName: stripHtml(raw.sourceName) || source.name,
+      sourceUrl: raw.sourceUrl || source.url,
+      category: source.category,
+      isOfficialSource: source.official === true,
+      organisation: source.organisation || "",
+      jobType: source.jobType,
+      location: source.location,
+      country: source.country || "",
+      fetchedAt: new Date().toISOString(),
+    };
+    item.sector = getJobSector(getJobText(item));
+    return item;
   });
 
-  const update = (e) => {
-    setSubmitStatus("");
-    setSubmitError("");
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-  const field =
-    "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100";
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitError("");
-    setSubmitStatus("");
-
-    try {
-      const turnstileToken =
-        document.querySelector('[name="cf-turnstile-response"]')?.value || "";
-      if (TURNSTILE_SITE_KEY && !turnstileToken) {
-        throw new Error("Please complete the verification check before sending.");
-      }
-      const response = await fetch("/api/consultation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, consent: agreed, turnstileToken }),
-      });
-      const raw = await response.text();
-      let result;
-      try {
-        result = JSON.parse(raw);
-      } catch {
-        throw new Error(
-          response.status === 504
-            ? "Sending took too long. Please try again."
-            : "The request service is temporarily unavailable. Please try again in a moment."
-        );
-      }
-      if (!response.ok) {
-        throw new Error(result.error || "We could not send your request.");
-      }
-      setSubmitStatus(
-        "Your request has been sent. The website owner will contact you using your preferred method."
-      );
-      setForm({
-        name: "",
-        region: "",
-        mobile: "",
-        email: "",
-        serviceType: "Legal Consultation",
-        query: "",
-        commPref: "Email",
-        website: "",
-      });
-      setAgreed(false);
-    } catch (error) {
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "We could not send your request. Please try again."
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <section className="mx-auto max-w-3xl px-4 py-12">
-      <div className="mb-8 rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-900 px-6 py-9 text-white md:px-9">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-200">Personal support</p>
-        <h1 className="mt-3 text-4xl font-extrabold tracking-tight">Request a consultation</h1>
-        <p className="mt-3 max-w-2xl leading-relaxed text-indigo-100/80">
-        Tell us how we can help. We will review your request and contact you
-        directly. No payment is collected on this website.
-        </p>
-      </div>
-      <p className="mt-2 text-sm leading-relaxed text-slate-500">
-        Your details and message will be emailed to the Pleadlaw team so they
-        can respond. Please do not include passwords or highly sensitive
-        documents.
-      </p>
-
-      <form
-        onSubmit={handleSubmit}
-        className="surface-card mt-8 space-y-5 rounded-2xl p-6 md:p-8"
-      >
-        <label className="block text-sm font-medium">
-          Name *
-          <input
-            required
-            maxLength={100}
-            autoComplete="name"
-            name="name"
-            value={form.name}
-            onChange={update}
-            className={field}
-          />
-        </label>
-        <label className="block text-sm font-medium">
-          City / State *
-          <input
-            required
-            maxLength={120}
-            autoComplete="address-level1"
-            name="region"
-            value={form.region}
-            onChange={update}
-            className={field}
-          />
-        </label>
-        <label className="block text-sm font-medium">
-          Mobile Number{form.commPref === "WhatsApp" ? " *" : ""}
-          <input
-            required={form.commPref === "WhatsApp"}
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            pattern="(?:\+?91[\s-]?)?[6-9]\d{9}"
-            title="Enter a valid 10-digit Indian mobile number, optionally with +91."
-            maxLength={16}
-            name="mobile"
-            value={form.mobile}
-            onChange={update}
-            className={field}
-          />
-        </label>
-        <label className="block text-sm font-medium">
-          Email Address{form.commPref === "Email" ? " *" : ""}
-          <input
-            required={form.commPref === "Email"}
-            type="email"
-            maxLength={254}
-            autoComplete="email"
-            name="email"
-            value={form.email}
-            onChange={update}
-            className={field}
-          />
-        </label>
-        <label className="block text-sm font-medium">
-          Service Type *
-          <select name="serviceType" value={form.serviceType} onChange={update} className={field}>
-            <option>Career Counselling</option>
-            <option>CV Building &amp; Review</option>
-            <option>Legal Consultation</option>
-            <option>Legal Research &amp; Drafting</option>
-          </select>
-        </label>
-        <label className="block text-sm font-medium">
-          How can we help? *
-          <textarea
-            required
-            minLength={10}
-            maxLength={5000}
-            name="query"
-            rows={5}
-            value={form.query}
-            onChange={update}
-            className={field}
-          />
-        </label>
-        <label className="block text-sm font-medium">
-          Preferred way to contact you *
-          <select name="commPref" value={form.commPref} onChange={update} className={field}>
-            <option>Email</option>
-            <option>WhatsApp</option>
-          </select>
-          <span className="mt-1 block text-xs font-normal text-slate-500">
-            Provide an email address for email replies or a mobile number for WhatsApp.
-          </span>
-        </label>
-
-        <div className="hidden" aria-hidden="true">
-          <label>
-            Leave this field empty
-            <input
-              tabIndex="-1"
-              autoComplete="off"
-              name="website"
-              value={form.website}
-              onChange={update}
-            />
-          </label>
-        </div>
-
-        <label className="flex items-start gap-2 text-sm">
-          <input
-            required
-            type="checkbox"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-1"
-          />
-          <span>
-            I agree that my details will be emailed to the Pleadlaw team to
-            respond to this request. I understand that submitting this form
-            does not create an advocate-client relationship.
-          </span>
-        </label>
-        <p className="-mt-3 text-xs leading-relaxed text-slate-500">
-          We use your details to respond to this request. See our{" "}
-          <Link to="/policies" className="font-semibold text-brand-700 underline hover:text-brand-500">
-            Privacy information
-          </Link>
-          . Please do not include passwords or highly sensitive documents.
-        </p>
-
-        {submitError && (
-          <p role="alert" className="text-sm text-red-600">
-            {submitError}
-          </p>
-        )}
-        {submitStatus && (
-          <p role="status" className="text-sm text-green-700">
-            {submitStatus}
-          </p>
-        )}
-
-        {TURNSTILE_SITE_KEY && (
-          <div className="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} />
-        )}
-
-        <button
-          type="submit"
-          disabled={!agreed || isSubmitting}
-          className="w-full rounded-lg bg-brand-600 py-2.5 font-semibold text-white disabled:opacity-50"
-        >
-          {isSubmitting ? "Sending request..." : "Send consultation request"}
-        </button>
-      </form>
-    </section>
-  );
+  return items;
 }
 
-/* ---------- AI DRAFTER ---------- */
-
-export function Drafter() {
-  useDocumentMeta(
-    "AI document drafter for India | Pleadlaw",
-    "Guided preliminary drafts of petitions, legal notices, rent agreements, affidavits, NDAs, consumer complaints and RTI applications. Review with an advocate.",
-    "/drafter"
-  );
-  const [docType, setDocType] = useState(DOCUMENT_TYPES[0]);
-  const [formData, setFormData] = useState({});
-  const [agreed, setAgreed] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [draft, setDraft] = useState("");
-  const [notes, setNotes] = useState("");
-  const [warnings, setWarnings] = useState([]);
-  const [copied, setCopied] = useState(false);
-  const [error, setError] = useState("");
-  const fields = DOCUMENT_SCHEMAS[docType].fields.filter(
-    (field) => !field.showIf || formData[field.showIf.name] === field.showIf.equals
-  );
-  const groupOrder = [...new Set(fields.map((field) => field.group))];
-
-  const copyDraft = async () => {
-    try {
-      await navigator.clipboard.writeText(draft);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setError("Could not copy automatically. Please select the text and copy it manually.");
-    }
-  };
-
-  const downloadDraft = () => {
-    const blob = new Blob([draft], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${docType.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-draft.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const updateField = (name, value) => {
-    setFormData((previous) => ({ ...previous, [name]: value }));
-  };
-
-  const handleGenerate = async (event) => {
-    event.preventDefault();
-    setError("");
-    setDraft("");
-    setNotes("");
-    setWarnings([]);
-
-    if (!agreed) {
-      setError("Please check the consent box before generating the draft.");
-      return;
-    }
-
-    const incompleteField = fields.find((field) => {
-      const value = formData[field.name]?.trim() || "";
-      if (!value && field.required === false) return false;
-      return !value || (field.minLength && value.length < field.minLength);
-    });
-    if (incompleteField) {
-      setError(`Please complete "${incompleteField.label}" before generating the draft.`);
-      return;
-    }
-
-    setIsGenerating(true);
-
-    try {
-      const response = await fetch("/api/draft-petition", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          docType,
-          fields: Object.fromEntries(
-            fields.map(({ name }) => [name, formData[name] || ""])
-          ),
-        }),
-      });
-      const raw = await response.text();
-      let result;
-      try {
-        result = JSON.parse(raw);
-      } catch {
-        throw new Error(
-          response.status === 504
-            ? "The drafting service took too long to respond. Please try again."
-            : "The drafting service is temporarily unavailable. Please try again in a moment."
-        );
-      }
-      if (!response.ok) {
-        throw new Error(result.error || "Unable to generate a draft right now.");
-      }
-      setDraft(result.draft);
-      setNotes(result.notes || "");
-      setWarnings(Array.isArray(result.warnings) ? result.warnings : []);
-    } catch (requestError) {
-      setError(
-        requestError instanceof TypeError
-          ? "Could not reach the drafting service. Please check your connection and try again."
-          : requestError instanceof Error
-            ? requestError.message
-            : "Unable to generate a draft right now."
-      );
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  return (
-    <section className="mx-auto max-w-3xl px-4 py-12">
-      <div className="mb-8 rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-900 px-6 py-9 text-white md:px-9">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-200">Pleadlaw AI Studio</p>
-        <h1 className="mt-3 text-4xl font-extrabold tracking-tight">Guided document drafting for India</h1>
-        <p className="mt-3 max-w-2xl leading-relaxed text-indigo-100/80">
-          Choose a document type and answer questions designed for that document. The AI uses
-          the details you provide to prepare a preliminary draft; it does not determine the
-          correct court, jurisdiction, or legal strategy.
-        </p>
-        <div className="mt-6 grid gap-3 text-sm text-white/90 sm:grid-cols-3">
-          <div className="rounded-xl border border-white/15 bg-white/[0.06] p-3">
-            <p className="font-semibold text-cyan-100">Document-specific questions</p>
-            <p className="mt-1 text-white/70">Prompts change with the selected document type.</p>
-          </div>
-          <div className="rounded-xl border border-white/15 bg-white/[0.06] p-3">
-            <p className="font-semibold text-cyan-100">Your facts, your review</p>
-            <p className="mt-1 text-white/70">Check every detail and have the draft reviewed.</p>
-          </div>
-          <div className="rounded-xl border border-white/15 bg-white/[0.06] p-3">
-            <p className="font-semibold text-cyan-100">You confirm the forum</p>
-            <p className="mt-1 text-white/70">The tool does not decide court jurisdiction.</p>
-          </div>
-        </div>
-      </div>
-
-      <form onSubmit={handleGenerate} className="surface-card space-y-5 rounded-2xl p-6 md:p-8">
-        <label htmlFor="draft-document-type" className="block text-sm font-medium">
-          Document type
-          <select
-            id="draft-document-type"
-            value={docType}
-            onChange={(e) => {
-              setDocType(e.target.value);
-              setFormData({});
-              setDraft("");
-              setError("");
-            }}
-            className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
-          >
-            {DOCUMENT_TYPES.map((d) => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
-        </label>
-
-        <div key={docType} className="space-y-4">
-          <h2 className="text-lg font-semibold">
-            Questions for: {docType}
-          </h2>
-          {groupOrder.map((group) => (
-          <fieldset key={group} className="space-y-4 rounded-xl border border-slate-200 p-4">
-            <legend className="px-1 text-sm font-semibold text-slate-700">{group}</legend>
-            {fields.filter((field) => field.group === group).map((field) => (
-            <label key={field.name} className="block text-sm font-medium">
-              {field.label}
-              {field.type === "textarea" ? (
-                <textarea
-                  rows={4}
-                  value={formData[field.name] || ""}
-                  onChange={(e) => updateField(field.name, e.target.value.slice(0, field.maxLength))}
-                  placeholder={field.placeholder}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
-                  required={field.required !== false}
-                  minLength={field.minLength || undefined}
-                  maxLength={field.maxLength}
-                />
-              ) : field.type === "select" ? (
-                <select
-                  value={formData[field.name] || ""}
-                  onChange={(e) => updateField(field.name, e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
-                  required={field.required !== false}
-                >
-                  <option value="">Select an option</option>
-                  {field.options.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type={field.type}
-                  value={formData[field.name] || ""}
-                  onChange={(e) => updateField(field.name, e.target.value.slice(0, field.maxLength))}
-                  placeholder={field.placeholder}
-                  className="mt-1 w-full rounded-lg border px-3 py-2"
-                  required={field.required !== false}
-                  maxLength={field.maxLength}
-                />
-              )}
-              {field.helpText && (
-                <span className="mt-1 block text-xs font-normal leading-relaxed text-slate-500">
-                  {field.helpText}
-                </span>
-              )}
-            </label>
-            ))}
-          </fieldset>
-          ))}
-        </div>
-
-        <label className="flex items-start gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-1"
-          />
-          <span>
-            I understand this is an AI-generated draft, not legal advice. I consent to sending
-            these details to Google Gemini to generate the draft and will have it reviewed by a
-            qualified advocate before use.
-          </span>
-        </label>
-
-        {error && (
-          <p role="alert" className="text-sm text-red-600">
-            {error}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={isGenerating}
-          className="w-full rounded-lg bg-brand-600 py-2.5 font-semibold text-white disabled:opacity-50"
-        >
-          {isGenerating ? "Generating draft..." : "Generate Draft"}
-        </button>
-      </form>
-
-      {draft && (
-        <div className="mt-6 rounded-xl border bg-white p-6">
-          <h2 className="text-xl font-semibold">Generated draft</h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" onClick={copyDraft} className="rounded-lg border px-3 py-1.5 text-sm font-medium hover:bg-slate-50">
-              {copied ? "Copied" : "Copy"}
-            </button>
-            <button type="button" onClick={downloadDraft} className="rounded-lg border px-3 py-1.5 text-sm font-medium hover:bg-slate-50">
-              Download .txt
-            </button>
-            <button type="button" onClick={() => window.print()} className="rounded-lg border px-3 py-1.5 text-sm font-medium hover:bg-slate-50">
-              Print / Save as PDF
-            </button>
-          </div>
-          {warnings.length > 0 && (
-            <div role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-              <p className="font-semibold">Possible content not in your details - please check:</p>
-              <ul className="mt-1 list-disc pl-5">
-                {warnings.map((w) => (<li key={w}>{w}</li>))}
-              </ul>
-            </div>
-          )}
-          <textarea
-            aria-label="Generated draft"
-            rows={18}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            className="mt-3 w-full rounded-lg border px-3 py-2"
-          />
-          {notes && (
-            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-              <p className="font-semibold">Notes for the reviewing advocate</p>
-              <p className="mt-1 whitespace-pre-wrap">{notes}</p>
-            </div>
-          )}
-          <p className="mt-2 text-sm text-amber-800">
-            This is a preliminary AI-generated draft, not legal advice. Verify all facts, laws,
-            citations, and court requirements with a qualified advocate before use.
-          </p>
-        </div>
-      )}
-    </section>
-  );
+function getJobRejectionReason(item, now = Date.now()) {
+  if (item.country !== "India") return "outside-India-scope";
+  if (!item.title) return "missing-title";
+  if (!isHttpsUrl(item.link)) return "missing-or-invalid-link";
+  const timestamp = Date.parse(item.pubDate || "");
+  if (Number.isNaN(timestamp)) return "missing-or-invalid-date";
+  if (timestamp > now) return "future-date";
+  if (now - timestamp > JOB_MAX_AGE_DAYS * 24 * 60 * 60 * 1000) {
+    return `older-than-${JOB_MAX_AGE_DAYS}-days`;
+  }
+  if (!isEligibleJobAnnouncement(item, now)) return "not-a-relevant-job-announcement";
+  return "";
 }
 
-/* ---------- POLICIES ---------- */
-
-export function Policies() {
-  useDocumentMeta(
-    "Policies and disclaimers | Pleadlaw",
-    "Disclaimer, AI draft notice, fees, news and job listing terms, and the privacy notice for Pleadlaw.",
-    "/policies"
+function saveRecentJobLeads(newItems) {
+  const existing = loadJsonSafe(JOBS_PENDING_PATH, []);
+  const now = Date.now();
+  const unique = new Map();
+  for (const item of [...existing, ...newItems]) {
+    if (isEligibleJobAnnouncement(item, now)) {
+      unique.set(item.link || item.id, item);
+    }
+  }
+  const recent = [...unique.values()].sort(
+    (a, b) => Date.parse(b.pubDate) - Date.parse(a.pubDate)
   );
-  return (
-    <section className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="text-3xl font-bold">Policies and Disclaimers</h1>
-      <p className="mt-2 rounded bg-amber-50 p-3 text-sm text-amber-800">
-        Draft text. Must be reviewed by a qualified advocate before publishing.
-      </p>
-
-      <h2 className="mt-8 text-xl font-semibold">Disclaimer</h2>
-      <p className="mt-2 text-slate-600">
-        The content on Pleadlaw is for general information only and is not legal advice. Submitting
-        a form does not create an advocate-client relationship. Such a relationship arises only
-        after a professional engagement is confirmed in writing. The Startup Guide is not a
-        comprehensive statement of obligations; requirements depend on the business facts,
-        applicable State or local rules, and current law.
-      </p>
-
-      <h2 className="mt-8 text-xl font-semibold">AI-Generated Drafts</h2>
-      <p className="mt-2 text-slate-600">
-        Drafts produced by the AI Drafting Assistant may contain errors or omissions and must be
-        reviewed by a qualified advocate before use.
-      </p>
-
-      <h2 className="mt-8 text-xl font-semibold">Fees</h2>
-      <p className="mt-2 text-slate-600">
-        This website does not process payments. Any professional service fees will be communicated
-        and agreed in advance by email or WhatsApp.
-      </p>
-
-      <h2 className="mt-8 text-xl font-semibold">News and Job Listings</h2>
-      <p className="mt-2 text-slate-600">
-        News and job listings link to third-party sources. Pleadlaw does not guarantee their
-        accuracy. Please verify details on the official source before relying on them.
-      </p>
-
-      <h2 className="mt-8 text-xl font-semibold">Privacy notice</h2>
-      <p className="mt-2 text-slate-600">
-        This notice explains how Pleadlaw handles personal data under the Digital Personal Data
-        Protection Act, 2023.
-      </p>
-      <ul className="mt-3 list-disc space-y-2 pl-6 text-slate-600">
-        <li>
-          <strong>What we collect:</strong> details you submit in the consultation form (name, city or
-          State, mobile number, email and query) and any contact details you choose to share.
-        </li>
-        <li>
-          <strong>Why:</strong> to respond to your consultation request. We do not use consultation data
-          for advertising.
-        </li>
-        <li>
-          <strong>AI Drafter:</strong> the details you enter are sent to Google Gemini to produce a draft.
-          This website does not store the drafts or the details you enter in the Drafter. Google's
-          handling of that data is governed by its own terms.
-        </li>
-        <li>
-          <strong>Retention:</strong> consultation emails are kept only as long as needed to respond and
-          for records of the request, and are then deleted.
-        </li>
-        <li>
-          <strong>Your rights:</strong> you can ask us to correct, access or delete your data, and withdraw
-          consent. Contact us through the consultation page and we will respond within a reasonable time.
-        </li>
-        <li>
-          <strong>Sharing:</strong> we do not sell personal data. Service providers that deliver emails or
-          verify forms receive only the data needed for that purpose.
-        </li>
-      </ul>
-      <p className="mt-3 text-sm text-slate-500">
-        Please do not submit information that is not needed for your request, especially sensitive
-        personal or financial data.
-      </p>
-    </section>
-  );
+  saveJson(JOBS_PENDING_PATH, recent);
+  return { count: recent.length };
 }
+
+async function run() {
+  const feedsConfig = loadJsonSafe(CONFIG_PATH, {
+    news: [],
+    jobLeads: [],
+    jobsManualOnly: [],
+  });
+
+  const { news = [], jobLeads = [] } = feedsConfig;
+
+  console.log(`[fetch-feeds] Starting run at ${new Date().toISOString()}`);
+  console.log(`[fetch-feeds] News sources: ${news.length}`);
+  console.log(`[fetch-feeds] Job lead sources: ${jobLeads.length}`);
+
+  // --- News sources ---
+  let allNewsItems = [];
+  for (const source of news) {
+    console.log(`[fetch-feeds] Fetching news: ${source.name}`);
+    const items = await fetchAndParse(source);
+    console.log(`  -> ${items.length} item(s) found`);
+
+    // Newest first, then keep only the top N per source so one source
+    // (e.g. SCC Online Blog) can't crowd out the others every run.
+    const newest = items
+      .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate))
+      .slice(0, MAX_NEWS_PER_SOURCE);
+    console.log(`  -> keeping ${newest.length} newest item(s) (cap: ${MAX_NEWS_PER_SOURCE})`);
+
+    allNewsItems = allNewsItems.concat(newest);
+  }
+
+  if (allNewsItems.length > 0) {
+    const result = appendToPending(NEWS_PENDING_PATH, allNewsItems);
+    console.log(
+      `[fetch-feeds] news-pending.json updated: +${result.added} added, ${result.skipped} duplicate(s) skipped`
+    );
+    autoPublishNews(allNewsItems);
+  } else {
+    console.log("[fetch-feeds] No news items fetched this run.");
+  }
+
+  // --- Job sources ---
+  let allJobLeadItems = [];
+  const rejectedJobs = new Map();
+  const now = Date.now();
+  for (const source of jobLeads) {
+    console.log(`[fetch-feeds] Fetching job source: ${source.name}`);
+    const items = await fetchAndParse(source);
+    console.log(`  -> ${items.length} item(s) found`);
+
+    const filtered = [];
+    for (const item of items) {
+      const reason = getJobRejectionReason(item, now);
+      if (reason) {
+        rejectedJobs.set(reason, (rejectedJobs.get(reason) || 0) + 1);
+      } else {
+        filtered.push(item);
+      }
+    }
+    console.log(`  -> ${filtered.length} recent legal vacancy announcement(s) kept`);
+
+    const tagged = await Promise.all(filtered.map(async (it) => ({
+      ...it,
+      link: await resolvePublisherUrl(it.link),
+      isLead: true,
+      requiresManualVerification: true,
+      sourceNote:
+        "Auto-collected lead — confirm the vacancy and details with the employer before applying.",
+    })));
+
+    allJobLeadItems = allJobLeadItems.concat(tagged);
+  }
+
+  const result = saveRecentJobLeads(allJobLeadItems);
+  console.log(
+    `[fetch-feeds] jobs-pending.json updated: ${result.count} eligible announcement(s), limited to the last ${JOB_MAX_AGE_DAYS} days`
+  );
+  if (rejectedJobs.size > 0) {
+    console.log(
+      `[fetch-feeds] Job feed exclusions: ${[...rejectedJobs]
+        .map(([reason, count]) => `${reason}=${count}`)
+        .join(", ")}`
+    );
+  }
+
+  if (allJobLeadItems.length > 0) {
+    autoPublishJobListings(allJobLeadItems);
+  } else {
+    console.log("[fetch-feeds] No job lead items fetched this run.");
+    autoPublishJobListings([]);
+  }
+
+  console.log(`[fetch-feeds] Run complete at ${new Date().toISOString()}`);
+}
+
+run().catch((err) => {
+  console.error("[fetch-feeds] Unexpected failure:", err);
+  process.exit(1);
+});
