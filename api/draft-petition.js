@@ -133,7 +133,6 @@ const GEMINI_CALL_TIMEOUT_MS = 30_000;
 function thinkingOff(model) {
   // Thinking adds latency and consumes output tokens; drafting does not need it.
   if (/^gemini-2\.5-flash/.test(model)) return { thinkingConfig: { thinkingBudget: 0 } };
-  if (/^gemini-3/.test(model)) return { thinkingConfig: { thinkingLevel: "minimal" } };
   return {};
 }
 
