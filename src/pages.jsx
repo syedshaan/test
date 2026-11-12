@@ -149,13 +149,16 @@ function jobTitleTokens(title) {
   );
 }
 
-function deduplicateJobs(jobs) {
+function deduplicateJobs(jobs, { preferPreferred = true } = {}) {
   const selected = [];
   const seenVacancyCounts = new Set();
-  for (const job of [...jobs].sort((a, b) =>
-    Number(isPreferredJob(b)) - Number(isPreferredJob(a)) ||
-    compareJobsByVacancyCount(a, b)
-  )) {
+  const ordered = preferPreferred
+    ? [...jobs].sort((a, b) =>
+        Number(isPreferredJob(b)) - Number(isPreferredJob(a)) ||
+        compareJobsByVacancyCount(a, b)
+      )
+    : jobs;
+  for (const job of ordered) {
     if (
       Number.isInteger(job.vacancyCount) &&
       job.vacancyCount > 0 &&
@@ -259,7 +262,8 @@ export function Home() {
           (j.vacancyCount > 0 && j.vacancyCount <= MAX_JOB_VACANCIES)) &&
         (!j.lastDate || new Date(j.lastDate) >= today)
     )
-    .sort(compareJobsByVacancyCount)
+    .sort(compareJobsByVacancyCount),
+    { preferPreferred: false }
   ).slice(0, 3);
 
   return (
