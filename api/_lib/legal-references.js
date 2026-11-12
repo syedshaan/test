@@ -1,89 +1,208 @@
-// Reviewed-reference sheets the drafter may cite. Keep this list short and have a
-// qualified advocate verify every entry before launch. The model is told it may cite
-// ONLY provisions listed here and must never invent others.
+// Structure and permitted law for each document type. The drafter must follow
+// "sections" in order and may cite ONLY the "provisions" listed here.
+// Every entry must be verified by a qualified advocate before launch.
 export const LEGAL_REFERENCES = {
   "Basic Petition": {
-    provisions: [],
-    outline:
-      "Court heading; cause title (petitioner v. respondent); petition title; numbered facts; grounds ONLY if supplied; prayer; blank place/date and signature lines.",
+    sections: [
+      "Court heading (exact court name supplied, with the place)",
+      "Case title block: 'In the matter of' / parties with father's or husband's name, age, occupation and address; 'Petitioner' and 'Respondent' labels",
+      "Petition title (type of petition supplied)",
+      "Opening paragraph stating who the petitioner is and the petition is filed under the supplied law/provision only",
+      "Facts: numbered paragraphs in date order, each stating one fact",
+      "Cause of action: date and place it arose (as supplied)",
+      "Jurisdiction and limitation statement only if the user supplied the basis",
+      "Grounds: numbered, only if supplied",
+      "Prayer: lettered relief items exactly as supplied",
+      "Interim relief: only if supplied",
+      "List of documents / annexures",
+      "Value of subject matter and court fee statement (state the value supplied; do not compute the fee)",
+      "Verification: 'Verified at [place] on [date] that the contents of paragraphs ... are true to my knowledge' with blank signature line",
+      "Advocate block: name and enrolment number if supplied, otherwise blank lines",
+    ],
+    provisions: [
+      "Code of Civil Procedure, 1908, Order VI Rule 15 (verification of pleadings)",
+      "Code of Civil Procedure, 1908, Order VII Rule 1 (contents of a plaint, where the petition is a civil suit)",
+      "Code of Civil Procedure, 1908, Section 20 (place of suing) - only when the user supplied the place basis",
+      "Constitution of India, Article 226 (High Court writ jurisdiction) - only for writ petitions",
+      "Constitution of India, Article 32 (Supreme Court writ jurisdiction) - only for writ petitions",
+      "Bharatiya Nagarik Suraksha Sanhita, 2023, Section 528 (inherent powers of High Court) - only for criminal petitions",
+    ],
     reviewerChecks: [
-      "Confirm the court or forum, the governing statute, and that the court's prescribed format is followed.",
-      "Confirm limitation, the court fee for the stated subject-matter value (state-specific), and whether a verification affidavit is required.",
-      "Confirm that the cause title lists all parties and that each party's details match their ID documents.",
+      "Confirm the court, its pecuniary and territorial jurisdiction, and the prescribed format for that court.",
+      "Confirm court fee for the subject-matter value (state-specific) and any affidavit or vakalatnama required.",
+      "Confirm the cause title and the verification match the party's ID documents and the court's rules.",
     ],
   },
+
   "Legal Notice (non-payment / cheque bounce)": {
-    provisions: [
-      "Negotiable Instruments Act, 1881, Section 138 (dishonour of cheque for insufficiency of funds) - only when the notice relates to a dishonoured cheque",
-      "Negotiable Instruments Act, 1881, Section 138(b): demand notice must be given within 30 days of receiving information from the bank of the dishonour",
-      "Negotiable Instruments Act, 1881, Section 138(c): drawer has 15 days from receipt of the notice to make payment",
-      "Indian Contract Act, 1872 - only for unpaid dues based on an agreement",
+    sections: [
+      "Heading 'LEGAL NOTICE' with date and place",
+      "'Under instructions from my client' wording, only if the sender is an advocate",
+      "Sender and recipient blocks, with names, father's names and addresses",
+      "Subject line with the matter and reference (agreement / invoice / cheque)",
+      "Facts: numbered, in date order, with dates and amounts as supplied",
+      "For a cheque: cheque number, date, amount, drawn bank and branch, date of return memo, reason for dishonour",
+      "Demand: amount, what must be paid or done, and the period given",
+      "Statutory reference: for a dishonoured cheque, state that the notice is given under Section 138 of the Negotiable Instruments Act, 1881 and that the payment period is 15 days from receipt; otherwise, no statute",
+      "Consequence: only the consequence the user supplied, or the statutory consequence for a dishonoured cheque",
+      "Mode of service and enclosures",
+      "Signature block (blank), with advocate or sender name",
     ],
-    outline:
-      "LEGAL NOTICE; sender and recipient blocks; subject; numbered facts; demand; closing asking for a response; blank signature line.",
+    provisions: [
+      "Negotiable Instruments Act, 1881, Section 138 (dishonour of cheque for insufficiency of funds) - only for a dishonoured cheque",
+      "Negotiable Instruments Act, 1881, Section 138 proviso (a): demand notice within 30 days of the bank's information about the dishonour",
+      "Negotiable Instruments Act, 1881, Section 138 proviso (c): 15 days to make payment after receipt of the notice",
+      "Negotiable Instruments Act, 1881, Section 141 (offences by companies) - only where the recipient is a company and its officers are named",
+      "Bharatiya Nyaya Sanhita, 2023, Section 318 (cheating) - only if the user says the matter involves cheating",
+      "Code of Civil Procedure, 1908, Section 80 (notice before suing the Government) - only if the recipient is the Government",
+    ],
     reviewerChecks: [
-      "For a cheque case, confirm the notice is sent within 30 days of the bank's return memo and that cheque number, date, amount, bank and return-memo date are stated correctly.",
-      "Confirm the mode and proof of service (registered post / email) and the response period.",
+      "For a cheque: confirm the notice is sent within 30 days of the bank's return memo, and that the cheque and memo details match the bank records.",
+      "Confirm the mode of service and proof (AD card, speed-post receipt, email trail) are kept.",
+      "Confirm the response period and that no consequence beyond the supplied facts is stated.",
     ],
   },
+
   "Rent / Leave and Licence Agreement": {
-    provisions: [
-      "Registration Act, 1908, Section 17(1)(d): a lease of immovable property for more than one year must be registered",
-      "Transfer of Property Act, 1882, Section 105 (definition of lease)",
-      "Indian Contract Act, 1872",
+    sections: [
+      "Title: 'LEASE / LEAVE AND LICENCE AGREEMENT' as supplied",
+      "Opening: 'This agreement is made on [date] at [place] between'",
+      "Parties: licensor/owner and licensee/tenant, with names, father's names, ages, occupation and addresses",
+      "Recitals: ownership of the property and the purpose of use (residential or commercial)",
+      "Clause 1: property description (address, floor, built-up area)",
+      "Clause 2: term, start date and duration",
+      "Clause 3: licence fee / rent, due day and mode of payment",
+      "Clause 4: escalation (only if supplied)",
+      "Clause 5: security deposit and refund conditions",
+      "Clause 6: lock-in period (only if supplied)",
+      "Clause 7: maintenance, electricity and water responsibility",
+      "Clause 8: notice period for termination by either party",
+      "Clause 9: subletting position as supplied",
+      "Clause 10: governing city and courts (only if supplied)",
+      "Witnesses: two witness blocks with name and address",
+      "Signature lines for each party (blank)",
     ],
-    outline:
-      "Title; date and place; parties; property; numbered clauses (term, rent, deposit, maintenance/utilities, termination); blank signature lines.",
+    provisions: [
+      "Transfer of Property Act, 1882, Section 105 (definition of lease)",
+      "Transfer of Property Act, 1882, Section 106 (periodic tenancy; notice period where the agreement is silent)",
+      "Transfer of Property Act, 1882, Section 107 (lease creation and form)",
+      "Registration Act, 1908, Section 17(1)(d) (leases over one year must be registered)",
+      "Indian Contract Act, 1872 (validity of the agreement)",
+    ],
     reviewerChecks: [
-      "Stamp duty and registration requirements vary by State; confirm them for the property's State.",
-      "Check lock-in, rent escalation, repair, police-verification and dispute clauses, none of which were drafted unless supplied.",
+      "Stamp duty and registration depend on the State and the lease term; confirm the stamp paper and registration for the property's State.",
+      "Check the State rent-control law (for example Maharashtra Rent Control Act, 1999, or Delhi Rent Control Act, 1958) and the Model Tenancy Act, 2019 where adopted.",
+      "Confirm police verification, inventory, and the clauses on repair, lock-in, escalation and subletting.",
     ],
   },
+
   "General Affidavit": {
-    provisions: ["Oaths Act, 1969"],
-    outline:
-      "AFFIDAVIT; deponent block; numbered first-person statements; unsigned verification section for the deponent to complete; blank place/date.",
+    sections: [
+      "Title: 'AFFIDAVIT' with the purpose in the subject line",
+      "Opening: 'I, [name], [son/daughter/wife] of [father/husband], aged [age] years, [occupation], residing at [address], do hereby solemnly affirm and state as under:'",
+      "Numbered paragraphs stating only the supplied facts in the first person",
+      "Purpose statement: 'This affidavit is made for the purpose of [purpose]'",
+      "Verification: 'Verified at [place] on [date] that the contents of this affidavit are true and correct to my knowledge, and nothing material has been concealed therefrom'",
+      "Deponent signature line (blank)",
+      "Oath / affirmation block for the notary or oath commissioner (blank)",
+    ],
+    provisions: [
+      "Oaths Act, 1969 (administration of oaths and affirmations)",
+      "Code of Civil Procedure, 1908, Order XIX Rule 1 and 3 (evidence by affidavit), only if the purpose is court use",
+    ],
     reviewerChecks: [
-      "The affidavit must be sworn or affirmed before an authorised officer; stamp paper requirements vary by State and purpose.",
+      "Confirm the affidavit is sworn or affirmed before a notary or oath commissioner, on stamp paper where the State requires it.",
+      "For a name change, confirm the gazette notification and the requirements of the issuing authority; for a passport or bank, confirm their specific format.",
       "Confirm each statement is within the deponent's personal knowledge.",
     ],
   },
+
   NDA: {
+    sections: [
+      "Title: 'NON-DISCLOSURE AGREEMENT' (one-way or mutual, as supplied)",
+      "Opening: date and place of agreement",
+      "Parties: each party's name, entity type, registered address and authorised signatory",
+      "Recitals: the parties wish to share information for the stated purpose",
+      "Clause 1: definition of confidential information",
+      "Clause 2: exclusions (only if supplied)",
+      "Clause 3: obligations of confidentiality and permitted use",
+      "Clause 4: duration of confidentiality",
+      "Clause 5: effective date",
+      "Clause 6: return or destruction of information (only if supplied)",
+      "Clause 7: remedies and damages (only if supplied)",
+      "Clause 8: governing law and courts (only if supplied)",
+      "Signature blocks for each authorised signatory (blank), and two witness lines",
+    ],
     provisions: [
       "Indian Contract Act, 1872, Section 27 (agreements in restraint of trade are void)",
-      "Indian Contract Act, 1872, Section 73 (compensation for breach)",
+      "Indian Contract Act, 1872, Section 73 (compensation for loss caused by breach)",
+      "Information Technology Act, 2000, Section 72A (disclosure of information in breach of lawful contract) - only where information includes personal data",
+      "Digital Personal Data Protection Act, 2023 - only where personal data is shared",
     ],
-    outline:
-      "Title; parties; recitals/purpose; numbered clauses (confidential information, duration, effective date); blank signature lines.",
     reviewerChecks: [
-      "Consider exclusions, permitted disclosures, return/destruction of information, remedies, governing law and forum, none of which were drafted unless supplied.",
-      "Check stamp duty requirements for the State.",
+      "Confirm whether the agreement should be mutual, its duration and whether the governing law and arbitration clauses are wanted.",
+      "Confirm stamp duty for the State and that the signatories have authority.",
+      "Check that the restraint-of-trade wording does not conflict with Section 27.",
     ],
   },
+
   "Consumer Complaint": {
+    sections: [
+      "Heading: 'BEFORE THE [commission level] CONSUMER DISPUTES REDRESSAL COMMISSION, [place]' using the level supplied, or the neutral heading for 'Not sure'",
+      "Complaint number and year left blank",
+      "Complainant and opposite party blocks with names, father's names, ages, addresses and contact details",
+      "Subject: product/service and the complaint type",
+      "Facts: numbered, in date order (purchase, payment, defect, complaints to the seller and replies)",
+      "Cause of action: the date the defect was noticed and the complaint was made",
+      "Jurisdiction statement: the value of the claim, and the place where the opposite party carries on business or the complainant resides, only as supplied",
+      "Limitation statement: that the complaint is filed within the period of limitation, only if the user confirms it",
+      "Unfair trade practice or deficiency: describe only what the supplied facts show",
+      "Relief: refund, compensation for mental agony and loss, litigation cost and interest, each stated with its amount where supplied",
+      "List of documents annexed",
+      "Verification: 'I, [name], do hereby verify that the contents of paragraphs ... are true to my knowledge' with place and date",
+      "Complainant signature block (blank)",
+    ],
     provisions: [
-      "Consumer Protection Act, 2019, Section 35 (manner of filing a complaint before the District Commission)",
+      "Consumer Protection Act, 2019, Section 2(7) (definition of consumer)",
+      "Consumer Protection Act, 2019, Section 2(11) (definition of deficiency)",
+      "Consumer Protection Act, 2019, Section 2(47) (definition of unfair trade practice)",
+      "Consumer Protection Act, 2019, Section 34 (jurisdiction of the District Commission)",
+      "Consumer Protection Act, 2019, Section 35 (manner of filing a complaint)",
       "Consumer Protection Act, 2019, Section 69 (limitation: two years from the date the cause of action arises)",
     ],
-    outline:
-      "Commission heading; parties with addresses; subject; numbered facts; relief; blank place/date and signature lines.",
     reviewerChecks: [
-      "Confirm the Commission level from the claim value under the Consumer Protection (Jurisdiction of the District, State and National Commissions) Rules, 2021, and the territorial jurisdiction of the place where the seller operates or the complainant lives.",
-      "Confirm limitation (two years from the cause of action) and the fee payable for the claim amount.",
+      "Confirm the Commission level by claim value under the Consumer Protection (Jurisdiction of the District, State and National Commissions) Rules, 2021, and the fee under the Consumer Protection (Consumer Disputes Redressal Commissions) Rules, 2020, as amended.",
+      "Confirm territorial jurisdiction and limitation, and file on e-Daakhil if the Commission accepts online filing.",
       "Confirm the complaint lists every annexure and that the verification is signed by the complainant.",
     ],
   },
+
   "RTI Application": {
+    sections: [
+      "Heading: 'APPLICATION UNDER THE RIGHT TO INFORMATION ACT, 2005'",
+      "Addressee: 'To, The Public Information Officer, [public authority and address]'",
+      "Applicant block: name, postal address, phone and email if supplied",
+      "Subject: request for information",
+      "Opening: 'I request the following information under Section 6(1) of the Right to Information Act, 2005'",
+      "Numbered information points, each as supplied",
+      "Period of information, if supplied",
+      "Format of information: copies, inspection, or electronic copies, as supplied",
+      "Statement: 'No reasons are given for this request, as provided by Section 6(2)'",
+      "Application fee: the mode supplied, or fee-exemption statement for BPL applicants where the user supplied it",
+      "Place and date; applicant signature block (blank)",
+    ],
     provisions: [
       "Right to Information Act, 2005, Section 6(1) (request for information)",
-      "Right to Information Act, 2005, Section 7(1) (disposal of request within 30 days)",
-      "Right to Information Act, 2005, Section 6(2) (no reason need be given for the request)",
+      "Right to Information Act, 2005, Section 6(2) (no reasons need be given)",
+      "Right to Information Act, 2005, Section 7(1) (decision within 30 days)",
+      "Right to Information Act, 2005, Section 7(1) proviso (48 hours where life or liberty is involved) - only if the user supplied it",
+      "Right to Information Act, 2005, Section 8 (exemptions) - only if the user asks about information that may be exempt",
+      "Right to Information Act, 2005, Section 19 (first appeal) - only for the appeal template",
     ],
-    outline:
-      "Title; addressed to the Public Information Officer of the supplied authority; applicant block; numbered information points; response format; blank place/date and signature lines.",
     reviewerChecks: [
-      "Confirm the Public Information Officer's designation and the application fee and payment mode for this authority (Central and State rules differ).",
-      "Check whether any requested item may fall under a Section 8 exemption.",
+      "Confirm the Public Information Officer and the authority's address from its RTI notice; confirm the application fee for that State (central rules and State rules differ).",
+      "Check whether any requested item may fall under a Section 8 exemption before filing.",
+      "Confirm the fee-exemption claim (BPL card) and attach a copy.",
     ],
   },
 };
