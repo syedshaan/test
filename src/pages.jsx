@@ -354,20 +354,24 @@ export function Home() {
             <p className="mt-6 max-w-xl text-lg leading-8 text-indigo-100/85">
               Create a Preliminary Document Draft With Guided Questions, Explore Indian Legal News, Curated Legal Jobs or a Practical Startup Guide
             </p>
-            <div className="mt-9 flex flex-wrap gap-3">
-              <Link
-                to="/consultation"
-                className="rounded-xl bg-white px-5 py-3 font-semibold text-slate-900 shadow-lg shadow-black/15 transition hover:-translate-y-0.5 hover:bg-cyan-50"
-              >
-                Talk to our team
-              </Link>
+            <div className="mt-9 flex flex-wrap items-center gap-4">
               <Link
                 to="/drafter"
-                className="rounded-xl border border-white/25 bg-white/[0.06] px-5 py-3 font-semibold text-white transition hover:bg-white/15"
+                className="rounded-xl bg-white px-6 py-3.5 font-semibold text-slate-900 shadow-lg shadow-black/15 transition hover:-translate-y-0.5 hover:bg-cyan-50"
               >
-                Explore AI drafting
+                Start a guided draft
+              </Link>
+              <Link
+                to="/consultation"
+                className="text-sm font-semibold text-cyan-100 underline-offset-4 hover:underline"
+              >
+                Book a consultation →
               </Link>
             </div>
+            <p className="mt-5 max-w-xl text-xs leading-relaxed text-indigo-100/70">
+              Drafts are preliminary and must be reviewed by a qualified advocate before use. This site
+              does not create an advocate-client relationship.
+            </p>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-indigo-100/70">
               <span>AI-assisted drafting</span>
               <span>·</span>
@@ -483,7 +487,7 @@ export function Home() {
               <div className="p-5">
                 <h3 className="font-bold text-slate-900">{member.name}</h3>
                 <p className="mt-1 text-sm font-medium text-violet-800">{member.role}</p>
-                <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-slate-600">{member.bio}</p>
+                <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-slate-600">{member.bio}</p>
                 <span className="mt-4 inline-block text-sm font-semibold text-brand-700">Read profile →</span>
               </div>
             </Link>
