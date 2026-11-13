@@ -1,6 +1,7 @@
 import { Suspense, lazy, useState } from "react";
 import { Routes, Route, Link, NavLink } from "react-router-dom";
 import { Home } from "./pages.jsx";
+import ErrorBoundary from "./ErrorBoundary.jsx";
 
 const named = (name) => () => import("./pages.jsx").then((m) => ({ default: m[name] }));
 const News = lazy(named("News"));
@@ -109,8 +110,15 @@ function Footer() {
 export default function App() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:shadow"
+      >
+        Skip to main content
+      </a>
       <Navbar />
-      <main className="flex-1">
+      <main id="main-content" className="flex-1" tabIndex={-1}>
+        <ErrorBoundary>
         <Suspense fallback={<p className="px-4 py-12 text-center text-slate-500">Loading...</p>}>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -125,6 +133,7 @@ export default function App() {
           <Route path="/policies" element={<Policies />} />
         </Routes>
         </Suspense>
+        </ErrorBoundary>
       </main>
       <Footer />
     </div>
