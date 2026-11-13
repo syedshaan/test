@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { DOCUMENT_SCHEMAS, DOCUMENT_TYPES } from "./draft-schema.js";
+import { downloadDocx, openPrintView, hasFilingPackage } from "./draft-export.js";
 import { teamMembers } from "./Team.jsx";
+
+function filingPackageNote(docType) {
+  if (docType === "Basic Petition") return "Adds Index, Memo of Parties, supporting affidavit and List of Documents with annexures numbered P-1, P-2.";
+  if (docType === "Consumer Complaint") return "Adds Index, Memo of Parties, supporting affidavit and List of Documents with annexures numbered C-1, C-2.";
+  if (docType.startsWith("Legal Notice")) return "Adds an Enclosures page with the cheque, bank memo and agreement references.";
+  if (docType.startsWith("Rent")) return "Adds a Schedule of Property and an Inventory of fixtures.";
+  return "";
+}
 
 /* ---------- shared helpers ---------- */
 
@@ -1244,6 +1253,30 @@ export function Drafter() {
   const [notes, setNotes] = useState("");
   const [warnings, setWarnings] = useState([]);
   const [copied, setCopied] = useState(false);
+  const [includePackage, setIncludePackage] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
+
+  const exportDraft = async (format) => {
+    setExportError("");
+    const args = { docType, draft, form: formData, includePackage: hasFilingPackage(docType) && includePackage };
+    try {
+      if (format === "docx") {
+        setIsExporting(true);
+        await downloadDocx(args);
+      } else {
+        openPrintView(args);
+      }
+    } catch (exportFailure) {
+      setExportError(
+        exportFailure instanceof Error && exportFailure.message
+          ? exportFailure.message
+          : "Could not prepare the document. Please try again."
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  };
   const [error, setError] = useState("");
   const fields = DOCUMENT_SCHEMAS[docType].fields.filter(
     (field) => !field.showIf || formData[field.showIf.name] === field.showIf.equals
@@ -1477,17 +1510,43 @@ export function Drafter() {
       {draft && (
         <div className="mt-6 rounded-xl border bg-white p-6">
           <h2 className="text-xl font-semibold">Generated draft</h2>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <button type="button" onClick={copyDraft} className="rounded-lg border px-3 py-1.5 text-sm font-medium hover:bg-slate-50">
               {copied ? "Copied" : "Copy"}
+            </button>
+            <button
+              type="button"
+              onClick={() => exportDraft("docx")}
+              disabled={isExporting}
+              className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              {isExporting ? "Preparing..." : "Download Word (.docx)"}
+            </button>
+            <button type="button" onClick={() => exportDraft("print")} className="rounded-lg border px-3 py-1.5 text-sm font-medium hover:bg-slate-50">
+              Print / Save as PDF
             </button>
             <button type="button" onClick={downloadDraft} className="rounded-lg border px-3 py-1.5 text-sm font-medium hover:bg-slate-50">
               Download .txt
             </button>
-            <button type="button" onClick={() => window.print()} className="rounded-lg border px-3 py-1.5 text-sm font-medium hover:bg-slate-50">
-              Print / Save as PDF
-            </button>
+            {hasFilingPackage(docType) && (
+              <label className="ml-1 flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={includePackage}
+                  onChange={(e) => setIncludePackage(e.target.checked)}
+                />
+                Include filing package
+              </label>
+            )}
           </div>
+          {hasFilingPackage(docType) && includePackage && (
+            <p className="mt-2 text-xs text-slate-500">
+              {filingPackageNote(docType)} Page numbers in the index are left blank to fill in after printing.
+            </p>
+          )}
+          {exportError && (
+            <p role="alert" className="mt-2 text-sm text-red-600">{exportError}</p>
+          )}
           {warnings.length > 0 && (
             <div role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
               <p className="font-semibold">Possible content not in your details - please check:</p>
