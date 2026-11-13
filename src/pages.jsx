@@ -71,6 +71,16 @@ const explainers = [
 const SITE_URL = "https://pleadlaw.vercel.app";
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
 
+function loadTurnstileScript() {
+  if (!TURNSTILE_SITE_KEY || document.getElementById("cf-turnstile-script")) return;
+  const script = document.createElement("script");
+  script.id = "cf-turnstile-script";
+  script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+  script.async = true;
+  script.defer = true;
+  document.head.appendChild(script);
+}
+
 function useDocumentMeta(title, description, path = "/") {
   useEffect(() => {
     document.title = title;
@@ -961,13 +971,7 @@ export function Consultation() {
     "/consultation"
   );
   useEffect(() => {
-    if (!TURNSTILE_SITE_KEY || document.getElementById("cf-turnstile-script")) return;
-    const script = document.createElement("script");
-    script.id = "cf-turnstile-script";
-    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
+    loadTurnstileScript();
   }, []);
   const [form, setForm] = useState({
     name: "",
@@ -1060,6 +1064,11 @@ export function Consultation() {
         documents.
       </p>
 
+      <p className="mt-6 rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
+        Pleadlaw is an informational and document-preparation resource. It does not advertise or solicit
+        legal work. Requesting a consultation is a request for information and does not create a
+        professional relationship.
+      </p>
       <form
         onSubmit={handleSubmit}
         className="surface-card mt-8 space-y-5 rounded-2xl p-6 md:p-8"
@@ -1220,6 +1229,9 @@ export function Drafter() {
     "Guided preliminary drafts of petitions, legal notices, rent agreements, affidavits, NDAs, consumer complaints and RTI applications. Review with an advocate.",
     "/drafter"
   );
+  useEffect(() => {
+    loadTurnstileScript();
+  }, []);
   const [docType, setDocType] = useState(DOCUMENT_TYPES[0]);
   const [formData, setFormData] = useState({});
   const [agreed, setAgreed] = useState(false);
@@ -1288,6 +1300,7 @@ export function Drafter() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           docType,
+          turnstileToken: document.querySelector('[name="cf-turnstile-response"]')?.value || "",
           fields: Object.fromEntries(
             fields.map(({ name }) => [name, formData[name] || ""])
           ),
@@ -1444,6 +1457,10 @@ export function Drafter() {
           </p>
         )}
 
+        {TURNSTILE_SITE_KEY && (
+          <div className="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} />
+        )}
+
         <button
           type="submit"
           disabled={isGenerating}
@@ -1539,6 +1556,41 @@ export function Policies() {
         News and job listings link to third-party sources. Pleadlaw does not guarantee their
         accuracy. Please verify details on the official source before relying on them.
       </p>
+
+      <h2 className="mt-8 text-xl font-semibold">Terms of service</h2>
+      <ul className="mt-2 list-disc space-y-2 pl-6 text-slate-600">
+        <li>
+          <strong>Use of the site:</strong> you may use Pleadlaw for personal, lawful purposes. You must
+          not use the site to submit false information, to overload the service, or to attempt to access
+          data that is not yours.
+        </li>
+        <li>
+          <strong>AI drafts:</strong> drafts are generated automatically from the details you enter. They
+          are preliminary, may contain errors, and must be checked by a qualified advocate before any use.
+          You are responsible for the facts, the forum and the filing.
+        </li>
+        <li>
+          <strong>No advocate-client relationship:</strong> using the site, submitting a form, or receiving
+          a draft does not create an advocate-client relationship. That relationship begins only when an
+          engagement is confirmed in writing.
+        </li>
+        <li>
+          <strong>Third-party content:</strong> news, job listings and links come from third parties.
+          Pleadlaw does not guarantee their accuracy or availability.
+        </li>
+        <li>
+          <strong>Limitation of liability:</strong> to the extent permitted by law, Pleadlaw is not liable
+          for loss arising from reliance on the site, its drafts or its listings.
+        </li>
+        <li>
+          <strong>Governing law:</strong> these terms are governed by the laws of India. Courts at the
+          place of the site operator's registered address have jurisdiction.
+        </li>
+        <li>
+          <strong>Changes:</strong> we may update these terms. The date of the latest update is shown on
+          this page.
+        </li>
+      </ul>
 
       <h2 className="mt-8 text-xl font-semibold">Privacy notice</h2>
       <p className="mt-2 text-slate-600">
