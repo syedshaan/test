@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 concurrency:
   group: update-feeds
@@ -33,3 +34,13 @@ jobs:
           git diff --staged --quiet || git commit -m "Update pending feeds"
           git pull --rebase origin main
           git push
+
+      - name: Open an issue if the feed run failed
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "Feed update failed (run ${{ github.run_id }})" \
+            --body "The scheduled feed update failed. Check the run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            || echo "Could not create issue"
