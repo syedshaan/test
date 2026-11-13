@@ -40,6 +40,7 @@ export function getClientIp(req) {
 }
 
 const memoryBuckets = new Map();
+let warnedAboutMemoryLimiter = false;
 
 async function upstashIncrement(key, windowSeconds) {
   const base = process.env.UPSTASH_REDIS_REST_URL;
@@ -79,11 +80,15 @@ function memoryIncrement(key, windowSeconds) {
  */
 export async function withinRateLimit(req, name, limit, windowSeconds) {
   const key = `rl:${name}:${getClientIp(req)}`;
+  const hasUpstash = Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+  if (!hasUpstash && !warnedAboutMemoryLimiter && process.env.VERCEL_ENV === "production") {
+    warnedAboutMemoryLimiter = true;
+    console.warn("[rate-limit] Upstash is not configured; using per-instance memory limits.");
+  }
   try {
-    const count =
-      process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-        ? await upstashIncrement(key, windowSeconds)
-        : memoryIncrement(key, windowSeconds);
+    const count = hasUpstash
+      ? await upstashIncrement(key, windowSeconds)
+      : memoryIncrement(key, windowSeconds);
     return count <= limit;
   } catch (error) {
     console.error("[rate-limit] check failed:", error instanceof Error ? error.message : "unknown");
