@@ -144,23 +144,90 @@
     "category": "news"
   },
   {
-    "id": "item-764188975",
-    "title": "Faculty of Law, University of Lucknow, organises departmental lecture on ‘An Introduction to Logic’",
-    "summary": "Drawing upon philosophical traditions, personal experiences, literary illustrations and examples from legal reasoning, Prof. Shukla demonstrated how logic enables the critical examination of statements, arguments and...",
+    "id": "item-2103636131",
+    "title": "“Reimagining the judiciary in the age of artificial intelligence”: Justice Joymalya Bagchi explores AI’s evolving role in the justice delivery system at 1st DNLU JusTech National Conclave",
+    "summary": "“Reimagining the Judiciary in the Age of Artificial Intelligence: Balancing Algorithmic Efficiency with Human Conscience” — Speaking at the 1st DNLU JusTech National Conclave, Justice Joymalya Bagchi explored the evol...",
     "source": "SCC Online Blog",
-    "url": "https://www.scconline.com/blog/post/2026/11/24/university-of-lucknow-faculty-of-law-introduction-to-logic-lecture/",
-    "date": "2026-11-24",
+    "url": "https://www.scconline.com/blog/post/2026/11/25/justice-joymalya-bagchi-ai-judiciary-dnlu-justech-national-conclave/",
+    "date": "2026-11-25",
     "category": "news"
   },
   {
-    "id": "item-381249704",
-    "title": "ICA–SCC Arbitration Institute Conclave on “Bridging India and the EU: Arbitration, Investment and the Future of Cross-Border Commerce”",
-    "summary": "The Conclave will be held on Wednesday, 25 November 2026, at Federation House, New Delhi. The post ICA&ndash;SCC Arbitration Institute Conclave on “Bridging India and the EU: Arbitration, Investment and the Future of...",
+    "id": "item-868261132",
+    "title": "Interest on borrowed capital under S. 36(1)(iii) allowable for Tata Son’s group investments, subject to Section 14-A: ITAT Mumbai dismisses Revenue’s appeal",
+    "summary": "“...The application of Section 14-A to expenditure relatable to exempt income does not, by itself, negate the business purpose of the borrowing or foreclose deduction of the balance expenditure. Conversely, the assess...",
     "source": "SCC Online Blog",
-    "url": "https://www.scconline.com/blog/post/2026/11/24/ica-scc-arbitration-institute-conclave-2026-india-eu/",
-    "date": "2026-11-24",
+    "url": "https://www.scconline.com/blog/post/2026/11/25/itat-mumbai-interest-on-borrowed-capital-under-section-36-1-iii-allowable-to-tata-sons/",
+    "date": "2026-11-25",
+    "category": "news"
+  },
+  {
+    "id": "item-1374643311",
+    "title": "Supreme Court Daily Round-Up : November 25, 2026",
+    "summary": "",
+    "source": "LiveLaw",
+    "url": "https://www.livelaw.in/top-stories/supreme-court-daily-round-up-november-25-2026-560013",
+    "date": "2026-11-25",
     "category": "news",
-    "image": "https://blog-images.scconline.com/blobblogscconl28830c17bf/blog/wp-content/uploads/2026/11/11_ICA%E2%80%93SCC-Arbitration-Institute-Conclave-on-Bridging-India-an-1.png"
+    "image": "https://www.livelaw.in/h-upload/2026/11/25/714333-750x450632929-nov-25.webp"
+  },
+  {
+    "id": "item-1703261496",
+    "title": "LiveLaw High Courts Daily Highlights: November 25, 2026",
+    "summary": "",
+    "source": "LiveLaw",
+    "url": "https://www.livelaw.in/high-court/all-high-courts/high-courts-daily-highlights-november-25-2026-560023",
+    "date": "2026-11-25",
+    "category": "news",
+    "image": "https://www.livelaw.in/h-upload/2026/11/14/711522-high-court-daily-highlights-new.webp"
+  },
+  {
+    "id": "item-196423274",
+    "title": "Management Trainee (Legal) Vacancy At Export-Import Bank of India (Exim Bank)",
+    "summary": "",
+    "source": "Suchita Shukla",
+    "url": "https://www.verdictum.in/job-updates/export-import-bank-of-india-1626445",
+    "date": "2026-11-25",
+    "category": "news",
+    "image": "https://www.verdictum.in/h-upload/2022/03/30/1343048-jobupdates-05.webp"
+  },
+  {
+    "id": "item-1506324736",
+    "title": "Allegation Of Fraud Cannot Automatically Establish Sufficient Cause To Condone Inordinate Delay: Kerala High Court",
+    "summary": "The Court said that liberty to file review petition does not dispense with proof of sufficient cause; refuses to condone 2,450-day delay.",
+    "source": "Agatha Shukla",
+    "url": "https://www.verdictum.in/kerala-high-court/usha-v-geetha-died-allegation-of-fraud-condone-2450-day-delay-1626446",
+    "date": "2026-11-25",
+    "category": "news",
+    "image": "https://www.verdictum.in/h-upload/2022/06/29/1380255-justice-cs-dias-kerala-02.webp"
+  },
+  {
+    "id": "item-305988070",
+    "title": "Presumption U/S 139 NI Act Can Be Rebutted Based On Circumstances: Chhattisgarh High Court Upholds Acquittal Over Alleged Lost Cheque Misuse",
+    "summary": "The accused had informed his bank about the lost cheque book before the date stated on the disputed cheque and consistently maintained that the complainant had misused it.",
+    "source": "Muhib Makhdoomi",
+    "url": "https://www.verdictum.in/chhattisgarh-high-court/gurvinder-singh-v-balvinder-singh-2026cghc48127-ni-act-lost-cheque-defense-1626449",
+    "date": "2026-11-25",
+    "category": "news",
+    "image": "https://www.verdictum.in/h-upload/2026/04/01/1775071-chhattisgarh-high-court-justice-naresh-kumar-chandravanshi.webp"
+  },
+  {
+    "id": "item-1655689884",
+    "title": "Can an IIT-Madras online course cost a student her law degree? Gujarat High Court asks BCI - The Indian Express",
+    "summary": "Can an IIT-Madras online course cost a student her law degree? Gujarat High Court asks BCI The Indian Express",
+    "source": "The Indian Express",
+    "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxNc3BmUjJrdDFJZ2FZcExHMG1ZcTVIbkFzXzAyNU0xYXVHX1Q2YjRkVkNSOEhGMy14TWtQNVVwazVveEYtVFo4TlpaZkw5a1QzaXotWjlwQkYwV2hMOGFaOWtfOFBIUUlsWl9yRl9OWkVhYlhaeVE3a0JsbVV6UGJTQ0ZzLVktNEdfTlg0cTJCMGZsbkl5bjVRSElJejcyNDFQMHBB0gGqAUFVX3lxTE83QXl5UEU1RnFNa0VEb2NiQy1tdVJxaFBua19oS3hyLWdBM3JHYy1CNlVWSElicU8tTTJ3RDFYd0RNRHR4b3pyYTh0YlFvVXVLWlBqc0ZUSDNlREloWHkxbXItTm9WUmZUSURQRHVJNEJ1MFRad0FTMWpnZ1dsN0ZuYkNRSXAzTEdaLW1MMktqeWk1YXhGUlB0Ums3ZFF4SG01eWx4cEs1RlZR?oc=5",
+    "date": "2026-11-25",
+    "category": "news"
+  },
+  {
+    "id": "item-1301300877",
+    "title": "ICA to host India—Singapore Symposium on “From Shared Legal Foundations to the Future” in Singapore on November 27, 2026 - SCC Online",
+    "summary": "ICA to host India—Singapore Symposium on “From Shared Legal Foundations to the Future” in Singapore on November 27, 2026 SCC Online",
+    "source": "SCC Online",
+    "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPMU11QTBwbExHUi1mMnV5V3RURUp3NEl4QTBFODZKWG5oUzVJZmlpZ29INUo0cTM0RGszVXl1cUQxM0o2ZGxqbWw5azBzN2lzZkhqNDE0bU9xcllUVEgwUG1hWFpNZVdQYm1sZ3FsZjdHLTFMXzZsR0d5ZHlQMUlpc3kyMWhRRk9sSG1jUTJjcjNKclFaMVZ2dHNyd1N3YnV0ZTAtVnM1d0xVZkFLMU5BTmZBT3A?oc=5",
+    "date": "2026-11-25",
+    "category": "news"
   },
   {
     "id": "item-964487977",
@@ -181,26 +248,6 @@
     "date": "2026-11-24",
     "category": "news",
     "image": "https://cf-images.assettype.com/barandbench/2026-09-05/pideedee/ViewPoint-MIddle-Single-Image-copy.jpg"
-  },
-  {
-    "id": "item-1523156223",
-    "title": "Thiruparankundram Deepam Row: Madras High Court Asks State To Reconsider Prohibitory Orders In Madurai, Cites Devotees' Article 25 Rights",
-    "summary": "",
-    "source": "LiveLaw",
-    "url": "https://www.livelaw.in/high-court/madras-high-court/madras-high-court-thiruparankundram-deepam-row-559767",
-    "date": "2026-11-24",
-    "category": "news",
-    "image": "https://www.livelaw.in/h-upload/2025/12/05/634857-thiruparankundram-hill.webp"
-  },
-  {
-    "id": "item-253554890",
-    "title": "Holding Minor's Hand With Sexual Intent Constitutes Sexual Assault Under POCSO Act: MP High Court",
-    "summary": "The act of catching the hand with sexual intent is itself sufficient, Court said.",
-    "source": "LiveLaw",
-    "url": "https://www.livelaw.in/high-court/madhya-pradesh-high-court/madhya-pradesh-high-court-section-7-pocso-act-holding-hand-of-minor-with-sexual-intent-is-sexual-assault-559764",
-    "date": "2026-11-24",
-    "category": "news",
-    "image": "https://www.livelaw.in/h-upload/2023/10/20/499550-himachal-pradesh-high-court-questions-on-whether-neutral-approach-to-pocso-act-is-feasible-where-rape-offender-marries-accused-victim.webp"
   },
   {
     "id": "item-267113870",
@@ -329,16 +376,6 @@
     "date": "2026-11-23",
     "category": "news",
     "image": "https://www.verdictum.in/h-upload/2023/06/09/1509974-justice-pv-kunhikrishnankerala-hc.webp"
-  },
-  {
-    "id": "item-304418535",
-    "title": "Can Senior Citizens Seek Daughter-In-Law's Eviction From Shared Household? Delhi High Court Answers",
-    "summary": "The Court held that eviction may be ordered when necessary to protect senior citizens, but only after balancing the woman's residence rights and securing suitable alternate accommodation where required.",
-    "source": "Muhib Makhdoomi",
-    "url": "https://www.verdictum.in/delhi-high-court/ny-v-rky-and-others-2026dhc10250-dw-act-right-to-residence-eviction-1626313",
-    "date": "2026-11-23",
-    "category": "news",
-    "image": "https://www.verdictum.in/h-upload/2023/04/07/1488756-j-swarana-kanta-sharma-with-delhi-hc.webp"
   },
   {
     "id": "item-282896731",
@@ -493,16 +530,6 @@
     "category": "news"
   },
   {
-    "id": "item-1079441317",
-    "title": "Business-To-Business Exhibition Cannot Be Taken Out Of \"Entertainment\" Under Bombay Entertainments Duty Act Where Entry Is On Payment: Supreme Court",
-    "summary": "The Court upheld the levy of entertainment duty on the India International Jewellery Show, holding that an entry-form requirement for screening visitors cannot be used to avoid the plain reading of Section 2(a) of the...",
-    "source": "Agatha Shukla",
-    "url": "https://www.verdictum.in/supreme-court/the-gem-and-jewellery-export-promotion-council-v-the-state-of-maharashtra-2026-insc-1246-b2b-trade-shows-1626093",
-    "date": "2026-11-20",
-    "category": "news",
-    "image": "https://www.verdictum.in/h-upload/2026/08/08/1782195-scsvn-bhatti-j-nv-anjaria-j.webp"
-  },
-  {
     "id": "item-1117077231",
     "title": "Shardul Amarchand Mangaldas & Co. Advises IFC on USD 150 Million Financing to State Bank of India’s GIFT City Branch - SCC Online",
     "summary": "Shardul Amarchand Mangaldas & Co. Advises IFC on USD 150 Million Financing to State Bank of India’s GIFT City Branch SCC Online",
@@ -510,25 +537,6 @@
     "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQVG1lY1BRTGdyVkhHVG9wMXpaLXNEWTNqSGd4YlNuLW9GT1cyMFFoZVo0bC04U2pTZ0hqVTBiSXNXMTB4Z2ljVE53Zm9uakU4cmVIZW1aYzIydTd3Z29sN09BaTZ4LVU4LXpXMm9vdTNsMTJVUDVzWDgweGF0N0RGcE9UOFdGaFNrSlFZNmFuZzdFR3czMnZaaWpmY3FOZlg2RVh0a1oyUWw0TG9uc2J6LTdzLVI5dw?oc=5",
     "date": "2026-11-20",
     "category": "news"
-  },
-  {
-    "id": "item-1714575658",
-    "title": "“Existence of women in high public office does not establish that equality has been achieved throughout society”: Justice Nagarathna traces progress of women’s rights in India - SCC Online",
-    "summary": "“Existence of women in high public office does not establish that equality has been achieved throughout society”: Justice Nagarathna traces progress of women’s rights in India SCC Online",
-    "source": "SCC Online",
-    "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxQT01oeHFyODZ4U1NnSkNOY0FnZjJuN3FTZEVwc2hSQ01IQTBLZFRnN25rSi0wbk00bk5CX3V2M2tNa29xZWxDcF9JTE5CVWdFc3NLb1JtN1c1WXhRb0V0RjdBTklIZW1oell4N1dhR0Q1MEpmS3hKcjVjdXJhSl93X0RTeXNLZXRDZVpJV3pRbklaRVZ6TkowYVlPX0RobjNpcUpLOFRaMTRrOEVHTWlEN0JMQmg?oc=5",
-    "date": "2026-11-20",
-    "category": "news"
-  },
-  {
-    "id": "item-474120610",
-    "title": "MNLU, Mumbai Invites Applications For Posts Of Programme Coordinator & Junior Legal Fellow",
-    "summary": "",
-    "source": "Suchita Shukla",
-    "url": "https://www.verdictum.in/job-updates/maharashtra-national-law-university-1626130",
-    "date": "2026-11-20",
-    "category": "news",
-    "image": "https://www.verdictum.in/h-upload/2022/03/30/1343052-jobupdates-03.webp"
   },
   {
     "id": "item-1294145887",
@@ -581,15 +589,6 @@
     "summary": "Justice M.M. Sundresh Highlights India's Potential To Emerge As Global Arbitration Hub At India–New... Live Law",
     "source": "Live Law",
     "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxPZ1hwWmNSNk9JOW41d21pcDJaT09wQUlMc2tsVkdEWnlDSEcxYnU3dUUydDktWVFIMy1pdm5HQUp6NEN3V0NiekRReVRmeWtYQmpfM2d0VlNDQjV0Sy1mbDJSNXZjRkhZcWVDQmR1STlZT0hRczZaWndwaGREVWppc19KeDktSGlGX0FxZTQyZnV0OVVITFR4MHNJV1pyV0tKZWVjdzJpa2ZVWktaOUk1Nm92ZldESUI3d1FDd9IBwgFBVV95cUxNaEhORFI5dWxBVlhCXzVUSWN1Z0pwOGxocUp6aE9jN0lOMnBFRFFaaFBOZmZfMHpWVFlhMi1SXzJHZFdGUUV4MlFpV2ZMdzdTVHROcWg4dkE5Rk5Rek1qMWRxQTc5LTZlbVVBRERkc0dSUzJzcGtlVWpSY0dSbFVuNTVvcHBiZ2MzSXVqZDJpMlNucVR6WU9qMjNXb3k4N2JXNTBib29zY2xybnNEUmVyQlVfSVd2M1N6NmRtY2I0ZjhiQQ?oc=5",
-    "date": "2026-11-18",
-    "category": "news"
-  },
-  {
-    "id": "item-510116457",
-    "title": "Punjab & Haryana High Court allows law student with low attendance to write exam - The Indian Express",
-    "summary": "Punjab & Haryana High Court allows law student with low attendance to write exam The Indian Express",
-    "source": "The Indian Express",
-    "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPS2RxeWhGYmRCS0xuVE50VEJZUS1DcXlxNlJCbnJzZkN3bzZnYUVRQkd2c1Fjc1lXTjJfcjduYlo4azhPdDZKT08yQmUtclU4NzFQaDZkd2FJV2pWRUFwdTJlcWFmd0RhR3NibkZSNk1HV2Via3piTG5odGhSUm5iaE9SbmNRWVpUXy1JMVVUZmxoR0VWYmVGT3FuVlFJbHpmSndqbDZIa2kwZEs40gGzAUFVX3lxTE81R1RRdVNBR3JXSGpCZlBpcTFCTTBmbk5oMzkyMzBzZHpONWRVRVZQN0QycUI3OFhKM3dOZHlCcGdEUHFsNnY0SUh5RWRLNk9nRm9vY1FhaDhoTnRFQWpnMEdfcEVNbGVoLVJxRmdsVWNRQ0tPeGdTTDVTV3dZTDdlVkF5ZGFFcThuWFBMa0F1VkhnV2VkVlI4d09oRkF1Yi1PU0R6S2h4Z0FQZDFfaDA4U2Fz?oc=5",
     "date": "2026-11-18",
     "category": "news"
   },
